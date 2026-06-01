@@ -1,0 +1,100 @@
+#gool FiFaC 7 3
+
+#include "goolstdlib.gooc"
+
+#anim FIRE_FACE      [Fa1fV] 1 1
+
+#spawn S_FIRE_FACE   Fire_Face
+#spawn S_WATCHER     Fire_Face_Watcher
+
+var SwingInc
+
+state Fire_Face {
+    __transargs
+    code(SwingStartYaw, SwingArc, SwingCycleLen, SwingCycleOff, FireCycleLen, FireCycleOff, FireDuration, RangeBehind, RangeRight, RangeAhead, RangeLeft) {
+        roty = SwingStartYaw
+        rotz = SwingStartYaw
+        SwingStartYaw -= SwingArc
+        SwingArc <<= 1
+        SwingCycleLen = SwingCycleLen * 1s / 1.2s
+        SwingCycleOff = SwingCycleOff * 1s / 1.2s
+        FireCycleLen = FireCycleLen * 1s / 1.2s
+        FireCycleOff = FireCycleOff * 1s / 1.2s
+        FireDuration = FireDuration * 1s / 1.2s
+        if (SwingArc) {
+            SwingInc = SwingArc * 45deg / SwingCycleLen
+        }
+        zindex = 40
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_SIDES
+        sleepanim(0, FIRE_FACE)
+    }
+    trans { // MIPS
+        unless(STATUS_FIRSTFRAME) {
+            if (SwingArc) {
+                field_61 = (time(SwingCycleLen, SwingCycleOff) * SwingInc) >> 8
+                if (field_61 >= SwingArc) {
+                    if (field_61 == SwingArc) {
+                        soundpitch(2.0)
+                        sounddecay(6.4s)
+                        soundplay([FFarA], 1V)
+                        soundsetup(0, voice, 5)
+                    }
+                    roty = (SwingStartYaw + SwingArc) - sin(field_61 - SwingArc, SwingArc)
+                }
+                else {
+                    if (!field_61) {
+                        soundpitch(2.0)
+                        sounddecay(6.4s)
+                        soundplay([FFarA], 1V)
+                        soundsetup(0, voice, 5)
+                    }
+                    roty = SwingStartYaw + sin(field_61, SwingArc)
+                }
+            }
+            else {
+                field_61 = 0
+                roty = SwingStartYaw
+            }
+            if (z - player -> z <= RangeBehind && player -> x - x <= RangeRight && player -> z - z <= RangeAhead && x - player -> x <= RangeLeft) {
+                if (FireCycleOff < 0) {
+                    FireCycleOff = (FireCycleLen - 1) - time(FireCycleLen)
+                }
+                var FlameCycleTime = time(FireCycleLen, FireCycleOff)
+                if (FlameCycleTime < FireDuration) {
+                    if (!FlameCycleTime) {
+                        soundpitch(3.625)
+                        sounddecay(6.4s)
+                        soundplay([FThrA], 2V)
+                        soundsetup(0, voice, 5)
+                    }
+                    spawn(9, 15, 1, 0, roty, 0, 3m, 0.8S)
+                }
+            }
+        }
+    }
+}
+
+state Fire_Face_Watcher {
+    code() {
+        zindex = 40
+        statusb = FLAG_SOLID_SIDES | FLAG_COLLIDABLE
+        sleepanim(0, FIRE_FACE)
+    }
+    trans {
+        once {
+            roty = atan2(player -> trans)
+            rotz = roty
+        }
+        vecy = degdist(roty, atan2(player -> trans)) >> 2
+        if (vecy >= 0deg) {
+            if (vecy > 2.2deg) {
+                vecy = 2.2deg
+            }
+        }
+        else if (vecy < -2.2deg) {
+            vecy = -2.2deg
+        }
+        roty = (roty + vecy) % 360deg
+        rotz = roty
+    }
+}

@@ -1,0 +1,1961 @@
+#gool PartC 9 9
+
+#include "goolstdlib.gooc"
+
+#sprite SMOKE[Cr10T]
+#tex 0x3C3C3C 0 3 0 9 768 96 32 32
+#tex 0x3C3C3C 0 3 1 9 768 64 32 32
+#tex 0x3C3C3C 0 3 2 9 768 32 32 32
+#tex 0x3C3C3C 0 3 3 9 800 96 32 32
+#tex 0x3C3C3C 0 3 4 9 800 64 32 32
+#tex 0x3C3C3C 0 3 5 9 800 32 32 32
+#tex 0x3C3C3C 0 3 6 9 832 96 32 32
+#tex 0x3C3C3C 0 3 7 9 832 64 32 32
+#tex 0x3C3C3C 0 3 8 9 832 32 32 32
+#tex 0x3C3C3C 0 3 9 9 864 96 32 32
+#tex 0x3C3C3C 0 3 0 9 864 64 32 32
+#tex 0x3C3C3C 0 3 10 9 864 32 32 32
+#tex 0x3C3C3C 0 3 11 9 896 96 32 32
+#tex 0x3C3C3C 0 3 12 9 896 64 32 32
+#tex 0x3C3C3C 0 3 13 9 896 32 32 32
+#tex 0x3C3C3C 0 3 13 9 896 32 32 32
+
+#sprite EXHAUST_SMOKE[Cr10T]
+#tex 0x00FFFF 0 3 0 9 768 96 32 32
+#tex 0x00BFFF 0 3 1 9 768 64 32 32
+#tex 0x009FFF 0 3 7 9 832 64 32 32
+#tex 0x005FFF 0 3 3 9 800 96 32 32
+#tex 0x003FFF 0 3 4 9 800 64 32 32
+#tex 0x0000FF 0 3 5 9 800 32 32 32
+#tex 0x2020DF 0 3 6 9 832 96 32 32
+#tex 0x4040BF 0 3 7 9 832 64 32 32
+#tex 0x60609F 0 3 8 9 832 32 32 32
+#tex 0x808080 0 3 9 9 864 96 32 32
+#tex 0x606060 0 3 0 9 864 64 32 32
+#tex 0x505050 0 3 10 9 864 32 32 32
+#tex 0x404040 0 3 11 9 896 96 32 32
+#tex 0x202020 0 3 12 9 896 64 32 32
+#tex 0x101010 0 3 13 9 896 32 32 32
+
+#sprite SMOKE_DARK[Cr10T] // Wrong blend mode? 
+#tex 0x1E1E1E 0 3 0 9 768 96 32 32
+#tex 0x1E1E1E 0 3 1 9 768 64 32 32
+#tex 0x1E1E1E 0 3 2 9 768 32 32 32
+#tex 0x1E1E1E 0 3 3 9 800 96 32 32
+#tex 0x1E1E1E 0 3 4 9 800 64 32 32
+#tex 0x1E1E1E 0 3 5 9 800 32 32 32
+#tex 0x1E1E1E 0 3 6 9 832 96 32 32
+#tex 0x1E1E1E 0 3 7 9 832 64 32 32
+#tex 0x1E1E1E 0 3 8 9 832 32 32 32
+#tex 0x1E1E1E 0 3 9 9 864 96 32 32
+#tex 0x1E1E1E 0 3 0 9 864 64 32 32
+#tex 0x191919 0 3 10 9 864 32 32 32
+#tex 0x141414 0 3 11 9 896 96 32 32
+#tex 0x0F0F0F 0 3 12 9 896 64 32 32
+#tex 0x0A0A0A 0 3 13 9 896 32 32 32
+#tex 0x050505 0 3 13 9 896 32 32 32
+
+#anim SHOCKWAVE[EX10V] 8 1
+#anim EXPLOSION[EX20V] 12 1
+
+#sprite EXPLOSION_SMOKE[Cr10T]
+#tex 0x00C0C0 0 3 0 9 768 96 32 32
+#tex 0x008FC0 0 3 1 9 768 64 32 32
+#tex 0x005FC0 0 3 2 9 768 32 32 32
+#tex 0x002FC0 0 3 3 9 800 96 32 32
+#tex 0x0000C0 0 3 4 9 800 64 32 32
+#tex 0x0000C0 0 3 5 9 800 32 32 32
+#tex 0x0000C0 0 3 6 9 832 96 32 32
+#tex 0x0000C0 0 3 7 9 832 64 32 32
+#tex 0x0000C0 0 3 8 9 832 32 32 32
+#tex 0x0000C0 0 3 9 9 864 96 32 32
+#tex 0x2F2F8F 0 3 0 9 864 64 32 32
+#tex 0x606060 0 3 10 9 864 32 32 32
+#tex 0x484848 0 3 11 9 896 96 32 32
+#tex 0x2F2F2F 0 3 12 9 896 64 32 32
+#tex 0x181818 0 3 13 9 896 32 32 32
+#tex 0x0C0C0C 0 3 13 9 896 32 32 32
+
+#sprite FIRE_PARTICLE[Cr10T]
+#tex 0x00CEFF 0 3 0 9 768 96 32 32
+#tex 0x00A7FF 0 3 1 9 768 64 32 32
+#tex 0x006DFF 0 3 2 9 768 32 32 32
+#tex 0x004FF4 0 3 3 9 800 96 32 32
+#tex 0x003ADF 0 3 4 9 800 64 32 32
+#tex 0x0020CC 0 3 5 9 800 32 32 32
+#tex 0x001AB0 0 3 6 9 832 96 32 32
+#tex 0x001A90 0 3 7 9 832 64 32 32
+#tex 0x001A63 0 3 8 9 832 32 32 32
+#tex 0x001A44 0 3 9 9 864 96 32 32
+#tex 0x001333 0 3 0 9 864 64 32 32
+
+#iflev pxw
+#sprite WATER_SPLASH_RIPPLE[Ri3pT]
+#tex 0xF3CD05 0 3 9 17 704 96 32 32
+#tex 0xCBCD05 0 3 9 17 704 64 32 32
+#tex 0xCBCD05 0 3 9 17 704 32 32 32
+#tex 0xCBCD05 0 3 9 17 736 96 32 32
+#tex 0xCBCD05 0 3 9 17 736 64 32 32
+#sprite WATER_SPLASH[Ri2pT]
+#tex 0x808080 0 3 10 9 656 16 16 16
+#sprite WATER_WAKE_RIPPLE[Ri3pT]
+#tex 0x646464 0 3 8 17 640 32 32 32
+#tex 0x646464 0 3 8 17 672 96 32 32
+#tex 0x646464 0 3 8 17 672 64 32 32
+#tex 0x646464 0 3 8 17 672 32 32 32
+#eliflev zad
+#sprite WATER_SPLASH_RIPPLE[Se5aT]
+#tex 0xF3CD05 0 3 9 4 608 64 32 32
+#tex 0xCBCD05 0 3 9 4 608 32 32 32
+#tex 0xCBCD05 0 3 9 4 640 96 32 32
+#tex 0xCBCD05 0 3 9 4 640 64 32 32
+#tex 0xCBCD05 0 3 9 4 640 32 32 32
+#sprite WATER_SPLASH[Se5aT]
+#tex 0x808080 0 3 2 5 944 48 16 16
+#sprite WATER_WAKE_RIPPLE[Se5aT]
+#tex 0x646464 0 3 10 4 672 96 32 32
+#tex 0x646464 0 3 10 4 672 64 32 32
+#tex 0x646464 0 3 10 4 672 32 32 32
+#tex 0x646464 0 3 10 4 704 96 32 32
+#else
+#sprite WATER_SPLASH_RIPPLE[1014I]
+#tex 0xF3CD05 0 3 9 4 608 64 32 32
+#tex 0xCBCD05 0 3 9 4 608 32 32 32
+#tex 0xCBCD05 0 3 9 4 640 96 32 32
+#tex 0xCBCD05 0 3 9 4 640 64 32 32
+#tex 0xCBCD05 0 3 9 4 640 32 32 32
+#sprite WATER_SPLASH[1016I]
+#tex 0x808080 0 3 2 5 944 48 16 16
+#sprite WATER_WAKE_RIPPLE[1022I]
+#tex 0x646464 0 3 10 4 672 96 32 32
+#tex 0x646464 0 3 10 4 672 64 32 32
+#tex 0x646464 0 3 10 4 672 32 32 32
+#tex 0x646464 0 3 10 4 704 96 32 32
+#endif
+
+#iflev zad
+#sprite SEWER_BUBBLE[Se2aT]
+#tex 0x808080 0 3 14 12 896 32 32 32
+#tex 0x808080 0 3 15 12 928 96 32 32
+#else
+#sprite SEWER_BUBBLE[1024I]
+#tex 0x808080 0 3 14 12 896 32 32 32
+#tex 0x808080 0 3 15 12 928 96 32 32
+#endif
+
+#sprite LIGHT[Cr20T]
+#tex 0xFFFFFF 0 0 5 0 928 32 32 32
+
+#iflev ehj
+#sprite FOOTPRINT[Sn1eT] // Wrong blend mode again?
+#tex 0x303020 0 0 13 13 816 16 16 16
+#eliflev tyb
+#sprite FOOTPRINT[Sn1tT]
+#tex 0x303020 0 0 15 13 512 16 16 16
+#else
+#sprite FOOTPRINT[1030I]
+#tex 0x303020 0 0 13 13 816 16 16 16
+#endif
+
+#iflev lA
+#sprite ALPINE_DIRT[Al5lT]
+#tex 0x808080 0 3 13 7 976 64 16 16
+#tex 0x808080 0 3 13 7 976 64 16 16
+#else
+#sprite ALPINE_DIRT[1032I]
+#tex 0x808080 0 3 13 7 976 64 16 16
+#tex 0x808080 0 3 13 7 976 64 16 16
+#endif
+
+#iflev zad
+#sprite SEWER_EYES[Se5aT]
+#tex 0x000080 1 3 0 2 32 32 32 32
+#else
+#sprite SEWER_EYES[1034I]
+#tex 0x000080 1 3 0 2 32 32 32 32
+#endif
+
+#iflev uv
+#anim ELEVATOR_1[El1bV]13 1
+#anim ELEVATOR_2[El2bV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[1046I]13 1
+#anim ELEVATOR_5[HG1bV]10 1
+#anim ELEVATOR_6[HG2bV]10 1
+#anim MOTH[Mo1bV]8 0
+#eliflev ehj
+#anim ELEVATOR_1[El1eV]13 1
+#anim ELEVATOR_2[El2eV]13 1
+#anim ELEVATOR_3[El3eV]13 1
+#anim ELEVATOR_4[El3pV]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev p
+#anim ELEVATOR_1[El1pV]13 1
+#anim ELEVATOR_2[El2pV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[El30V]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev wxk
+#anim ELEVATOR_1[El1wV]13 1
+#anim ELEVATOR_2[El2pV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[El3pV]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev ornlA
+#anim ELEVATOR_1[El1lV]13 1
+#anim ELEVATOR_2[El2lV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[1046I]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[HG2lV]10 1
+#anim MOTH[Mo1lV]8 0
+#eliflev zad
+#anim ELEVATOR_1[El1pV]13 1
+#anim ELEVATOR_2[El2aV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[El30V]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev mf
+#anim ELEVATOR_1[1037I]13 1
+#anim ELEVATOR_2[El2fV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[1046I]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev g
+#anim ELEVATOR_1[El1gV]13 1
+#anim ELEVATOR_2[El2gV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[El3pV]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev C
+#anim ELEVATOR_1[El1pV]13 1
+#anim ELEVATOR_2[El2gV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[El30V]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#eliflev cD
+#anim ELEVATOR_1[1037I]13 1
+#anim ELEVATOR_2[El2cV]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[1046I]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[HG2cV]10 1
+#anim MOTH[Mo1cV]8 0
+#else
+#anim ELEVATOR_1[1037I]13 1
+#anim ELEVATOR_2[1040I]13 1
+#anim ELEVATOR_3[1043I]13 1
+#anim ELEVATOR_4[1046I]13 1
+#anim ELEVATOR_5[1049I]10 1
+#anim ELEVATOR_6[1052I]10 1
+#anim MOTH[1057I]8 0
+#endif
+
+#iflev qi
+#anim SKY_BOX[Sk1iV] 1 1
+#else
+#anim SKY_BOX[1060I]1 1
+#endif
+
+#sprite EXHAUST_PARTICLE[Cr10T]
+#tex 0x008080 0 1 11 8 848 16 16 16
+
+#iflev ornlA
+#sprite SPARK_PARTICLE[Al5lT]
+#tex 0x505050 0 3 0 5 448 32 64 32
+#tex 0x505050 0 3 0 5 512 96 64 32
+#tex 0x505050 0 3 0 5 512 64 64 32
+#tex 0x505050 0 3 0 5 512 32 64 32
+#tex 0x505050 0 3 0 5 576 96 64 32
+#tex 0x505050 0 3 0 5 576 64 64 32
+#tex 0x505050 0 3 0 5 576 32 64 32
+#tex 0x505050 0 3 0 5 640 96 64 32
+#tex 0x505050 0 3 0 5 640 64 64 32
+#eliflev zad
+#sprite SPARK_PARTICLE[Se5aT]
+#tex 0x505050 0 3 1 9 128 32 64 32
+#tex 0x505050 0 3 1 9 192 32 64 32
+#tex 0x505050 0 3 1 9 256 32 64 32
+#tex 0x505050 0 3 1 9 320 96 64 32
+#tex 0x505050 0 3 1 9 320 64 64 32
+#tex 0x505050 0 3 1 9 320 32 64 32
+#tex 0x505050 0 3 1 9 384 96 64 32
+#tex 0x505050 0 3 1 9 384 64 64 32
+#tex 0x505050 0 3 1 9 384 32 64 32
+#eliflev gC
+#sprite SPARK_PARTICLE[Dy1gT]
+#tex 0x505050 0 3 14 5 256 32 64 32
+#tex 0x505050 0 3 14 5 320 32 64 32
+#tex 0x505050 0 3 14 5 384 96 64 32
+#tex 0x505050 0 3 14 5 384 64 64 32
+#tex 0x505050 0 3 14 5 384 32 64 32
+#tex 0x505050 0 3 14 5 448 96 64 32
+#tex 0x505050 0 3 14 5 448 64 64 32
+#tex 0x505050 0 3 14 5 448 32 64 32
+#tex 0x505050 0 3 14 5 512 96 64 32
+#eliflev qi
+#sprite SPARK_PARTICLE[Sp5iT]
+#tex 0x505050 0 3 13 0 128 32 64 32
+#tex 0x505050 0 3 13 0 192 32 64 32
+#tex 0x505050 0 3 13 0 256 32 64 32
+#tex 0x505050 0 3 13 0 320 32 64 32
+#tex 0x505050 0 3 13 0 384 32 64 32
+#tex 0x505050 0 3 13 0 448 32 64 32
+#tex 0x505050 0 3 13 0 512 32 64 32
+#tex 0x505050 0 3 13 0 576 32 64 32
+#tex 0x505050 0 3 13 0 640 32 64 32
+#else
+#sprite SPARK_PARTICLE[1065I]
+#tex 0x505050 0 3 13 0 128 32 64 32
+#tex 0x505050 0 3 13 0 192 32 64 32
+#tex 0x505050 0 3 13 0 256 32 64 32
+#tex 0x505050 0 3 13 0 320 32 64 32
+#tex 0x505050 0 3 13 0 384 32 64 32
+#tex 0x505050 0 3 13 0 448 32 64 32
+#tex 0x505050 0 3 13 0 512 32 64 32
+#tex 0x505050 0 3 13 0 576 32 64 32
+#tex 0x505050 0 3 13 0 640 32 64 32
+#endif
+
+#iflev pwxk
+#sprite RIVER_BUBBLE[Ri1pT]
+#tex 0x646464 0 3 1 13 800 32 32 32
+#else
+#sprite RIVER_BUBBLE[1070I]
+#tex 0x646464 0 3 1 13 800 32 32 32
+#endif
+
+#anim CRYSTAL_GLOW[Cry2V] 1 0
+
+#spawn S_BURN_SMOKE              Willy_Burn_Smoke
+#spawn S_WILLY_SMOKE             Willy_Smoke_Generic
+#spawn S_BODYSLAM_SMOKE          Willy_Bodyslam_Smoke
+#spawn S_BODYSLAM_SMOKE_CHILD    Willy_Bodyslam_Smoke_Child
+#spawn S_EXPLOSION_MASTER        Explosion_Master
+#spawn S_EXPLOSION_SMOKE         Explosion_Smoke
+#spawn S_ELEVATOR                Elevator_Init
+#spawn S_WATER_MASTER            Sewer_Water_Master
+#spawn S_SEWER_BUBBLE            Sewer_Bubble
+#spawn S_SEWER_BUBBLE_SOUND      Sewer_Bubble
+#spawn S_EXPLOSION_VERTEX        Explosion_On_Vertex
+#spawn S_WAKE_RIPPLE             Water_Wake_Ripple
+#spawn S_SPLASH_CHILD            Water_Splash_Child
+#spawn S_SPLASH_RIPPLE           Water_Splash_Ripple
+#spawn S_SPLASH                  Water_Splash_Master
+#spawn S_FIRE                    Fire
+#spawn S_16                      __s_16
+#spawn S_17                      __s_17
+#spawn S_18                      __s_18
+#spawn S_EXHAUST_SMOKE           Exhaust_Smoke
+#spawn S_SPACE_SKY               Space_Sky
+#spawn S_SMOKE_GENERIC           Smoke_Generic
+#spawn S_EXHAUST_PARTICLE        Exhaust_Particle
+#spawn S_23                      __s_23
+#spawn S_SPARK                   Spark
+#spawn S_SPARK_CRAWL             Spark_Crawl
+#spawn S_JETBOARD_EXHAUST        Exhaust_Particle_Master
+#spawn S_JETPACK_EXHAUST         Exhaust_Particle_Master
+#spawn S_REFLECTION              Reflection
+#spawn S_RIVER_BUBBLE            River_Bubble
+#spawn S_30                      __s_30
+#spawn S_ELEVATOR_BONUS          Elevator_Init
+#spawn S_SPAWN_32                Elevator_Catch
+#spawn S_HOLE_GATE               Hole_Gate
+#spawn S_SPAWN_34                Hole_Gate
+#spawn S_SPAWN_35                Elevator_Catch
+#spawn S_BREATH_VAPOR            Willy_Breath_Vapor
+#spawn S_FOOTPRINT               Footprint
+#spawn S_BONUS_RETURN            Bonus_Return
+#spawn S_BONUS_GUARD             Bonus_Guard
+#spawn S_PROJECTILE_EXPLOSION    Explosion_Master
+#spawn S_ALPINE_DIRT             Alpine_Dirt
+#spawn S_SEWER_EYES              Sewer_Eyes
+#spawn S_SHOCKWAVE               Shockwave
+#spawn S_AUDIO_STREAMER          Audio_Streamer
+#spawn S_MOTH                    Moth
+#spawn S_EXPLOSION               Explosion
+#spawn S_CRYSTAL_GLOW            Crystal_Glow
+#spawn S_SPAWN_48                STATE_14
+#spawn S_SPAWN_49                __s_49
+#spawn S_SPAWN_50                __s_50
+#spawn S_SPAWN_51                __s_51
+#spawn S_SPAWN_52                STATE_13
+#spawn S_53                      __s_53
+
+var mem1, mem2, mem3, mem4, mem5, mem6
+
+state Willy_Burn_Smoke { // 0
+    stateflag 0x80080
+    statusc 0x22
+    code(vert) {
+        var0 = false
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        SetScale(0.96)
+        SetRot(0deg, 0deg, rand(360deg))
+        zindex = 24
+        if (creator -> statusb & 0x2000000 || creator == player) {
+            statusb = 0x2000040
+        }
+        else {
+            statusb = FLAG_PHYSICS_ENGINE
+        }
+        velx = -rand(0.4m)
+        vely = 0.4m + rand(0.4m)
+        velz = randi(-0.2m, 0.2m)
+        setanim(SMOKE, -1.0)
+        do {
+            animframe += 1.0
+            if (var0) {
+                return
+            }
+            playframe(animframe, 0.25s)
+        } while (animframe + 1.0 <= 15.0)
+    }
+    event(e, a) {
+        if (e == Event19 || e == Event14) {
+            accev()
+            var0 = true
+        }
+    }
+    trans {
+        scalex += 0.318
+        scaley = scalex
+        if (frametime - statetime >= 50) {
+            moda = seek(moda, 16.0, 0x199)
+        }
+    }
+}
+
+state Willy_Smoke_Generic { // 1
+    stateflag 0x80080
+    statusc 0x22
+    event => state Willy_Burn_Smoke
+    code(vert) {
+        var0 = false
+        if (vert == -1.0) {
+            x += randi(-0x5000, 0x5000)
+            y += randi(-0x5000, 0x5000)
+            z += randi(-0x5000, 0x5000)
+        }
+        else {
+            getvert(vtrans, creator, vert)
+        }
+        scalex = !rand(2) ? 0.4S + rand(0.4S) : -(0.4S + rand(0.4S))
+        scaley = scalex
+        SetRot(0deg, 0deg, rand(360deg))
+        zindex = 24
+        ExplodeParticleSetSpeed(0.3m, 0.3m, 0.04m, 0.6m)
+        statusb = 0x2000040
+        setanim(SMOKE, 3.0)
+        do {
+            animframe += 1.0
+            if (var0) {
+                return
+            }
+            playframe(animframe)
+        } while (animframe + 1.0 <= 15.0)
+    }
+}
+
+state Willy_Bodyslam_Smoke { // 2
+    stateflag 0x80080
+    statusc 0x22
+    event => state Willy_Burn_Smoke
+    code(vert, count, velocity) {
+        var0 = 0
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        unless(FRAMETIME < 34) {
+            count >>= 1
+            unless(FRAMETIME < 36) {
+                return
+            }
+        }
+        field_61 = 360deg / (count >> 8)
+        roty = rand(360deg)
+        do (var smokes = 0){
+            spawn(PartC, S_BODYSLAM_SMOKE_CHILD, 1, roty, velocity)
+            roty += field_61
+            smokes += 1.0
+        } while (smokes < count)
+        do { playnull() } until(!child || var0)
+    }
+}
+
+state Willy_Bodyslam_Smoke_Child { // 3
+    stateflag 0x80080
+    statusc 0x22
+    code(angle, velocity) {
+        SetRot(0deg, 0deg, rand(360deg))
+        zindex = 48
+        trotz = 2m
+        troty = angle + randi(-15deg, 15deg)
+        speed = velocity + randi(-0.7m, 0.7m)
+        scalex = !rand(2) ? 0.4S + rand(0.4S) : -(0.4S + rand(0.4S))
+        if (scalex < 0) {
+            scalex -= abs(speed) >> 8
+        }
+        else {
+            scalex += abs(speed) >> 8
+        }
+        scaley = abs(scalex)
+        vely = rand(0.4m)
+        statusb = 0x2001040
+        playframes(SMOKE, 0.0, 15.0)
+    }
+    trans {
+        unless(STATUS_FIRSTFRAME) {
+            speed = seek(speed, 0, 0.7m)
+            setvel(speed)
+            vely = spd(vely, 2m)
+        }
+    }
+}
+
+state Exhaust_Smoke { // 4
+    stateflag 0x80080
+    statusc 0x22
+    code(vert, xvel, yvel, zvel) {
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        SetRot(0deg)
+        zindex = 24
+        SetVel(xvel, yvel, zvel)
+        scalex = !rand(2) ? 0.4S + rand(0.1S) : -(0.4S + rand(0.1S))
+        scaley = abs(scalex)
+        scalez = 0
+        statusb = 0x2000040
+        setanim(EXHAUST_SMOKE)
+        animframe = (time(3) << 8) - 3.0
+        do {
+            playframe(animframe + 3.0)
+        } while (animframe + 3.0 <= 14.0)
+    }
+}
+
+state Smoke_Generic { // 5
+    stateflag 0x80080
+    statusc 0x22
+    code(vert, xvel, yvel, zvel, scale, cmoda, zdx, flags) {
+        SetRot(0deg, 0deg, flags & 0x4 ? rand(360deg) : 0deg)
+        if (flags & 0x11) {
+            if (flags & 0x10) {
+                field_61 = 0x10C
+            }
+            else {
+                field_61 = 0xF3
+            }
+            settrans(SmokeScaleDecay)
+        }
+        if (flags & 0x2) {
+            setanim(SMOKE)
+        }
+        else {
+            setanim(SMOKE_DARK)
+        }
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        if (cmoda > 0) {
+            moda = cmoda
+            SetColor1(0xFF, 0xFF, 0xFF)
+        }
+        else if (cmoda < 0) {
+            moda = -cmoda
+            SetColor1(0x00, 0x00, 0x00)
+        }
+        zindex = zdx
+        SetVel(xvel, yvel, zvel)
+        SetScale(scale + rand(0.1S), abs(scalex), 0)
+        statusb = 0x2000040
+
+        if (flags & 0x8) {
+            setanim(EXHAUST_SMOKE)
+            animframe = ((time(3) % 3) << 8) - 3.0
+            do {
+                playframe(animframe + 3.0)
+            } while (animframe + 3.0 <= 14.0)
+        }
+        else if (flags & 0x20) {
+            animframe = -1.0
+            do {
+                playframe(animframe + 1.0, 0.25s)
+            } while (animframe + 1.0 <= 15.0)
+        }
+        else {
+            playframes(0.0, 15.0)
+        }
+    }
+}
+
+sub SmokeScaleDecay() {
+    scalex = (scalex * field_61) >> 8
+    scaley = abs(scalex)
+}
+
+state Exhaust_Particle_Master { // 6
+    stateflag 0x4000001
+    statusc 0x22
+    code(ax, ay, az, vert, maxvert) {
+        if (spawn == S_JETPACK_EXHAUST) {
+            ins46(ax, ax)
+        }
+        if (LEVEL == LEVEL_RockIt || LEVEL == LEVEL_PackAttack) {
+            soundpitch((15.36 + rand(1.28)) * 0.205 >> 8)
+            sounddecay(2.8s)
+            soundplay([JStTA], 0.4V + rand(0.05V))
+        }
+        do (var spawns = 0) {
+            if (FRAMETIME < 28) {
+                do (var nextvert = vert) {
+                    getvert(vtrans, creator, nextvert)
+                    spawn(PartC, S_EXHAUST_PARTICLE, 3, ax * -10, ay * -10, az * -10)
+                    nextvert += 1.0
+                } while (nextvert < maxvert)
+            }
+            else if (FRAMETIME < 32) {
+                do (var nextvert = vert) {
+                    getvert(vtrans, creator, nextvert)
+                    spawn(PartC, S_EXHAUST_PARTICLE, 1, ax * -10, ay * -10, az * -10)
+                    nextvert += 1.0
+                } while (nextvert < maxvert)
+            }
+            playnull()
+            spawns += 1.0
+        } while (spawns < 4.0)
+        WaitChildNull()
+    }
+}
+
+state Exhaust_Particle { // 7
+    stateflag 0x80080
+    statusc 0x22
+    code(ax, ay, az) {
+        vfx = (vfx & 0xFFFFFF00) | 0x2
+        SetColor1(0, 0, 0)
+        zindex = 40
+        velx = ax + randi(-2m, 2m)
+        vely = ay + randi(-2m, 2m)
+        velz = az + randi(-2m, 2m)
+        scalex = 0x147 + rand(0x51)
+        scaley = scalex
+        scalez = 0S
+        statusb = 0x2000040
+        playanim(0, EXHAUST_PARTICLE, 0.4s)
+    }
+    trans {
+        moda = seek(moda, 16.0, 0x147)
+        scalex -= 19
+        scaley = scalex
+    }
+}
+
+state Explosion_Master { // 8
+    stateflag 0x80
+    statusc 0x22
+    code(routine, flags) {
+        movetolist(3.0)
+        if (spawn == S_PROJECTILE_EXPLOSION) {
+            SoundPitchDefault(0.23)
+            sounddecay(7.7s)
+            soundplay([tnt0A], 1V)
+            soundsetup(0, voice, 5)
+        }
+        var0 = miscfunc(creator, self, 15, 12)
+        if (flags & 2) {
+            spawn(PartC, S_SHOCKWAVE, 1, 200.0, 0x80, 0x32, 0x00, routine, var0)
+        }
+        if (flags & 4) {
+            spawn(PartC, S_EXPLOSION, 1, 0x14, 0x2D, 0x2, 0, 0)
+        }
+        spawn(PartC, S_EXPLOSION_SMOKE, 2, 1, routine, var0)
+        unless(flags & 1 && FRAMETIME < 36) {
+            spawn(PartC, S_EXPLOSION_SMOKE, 3, 0, routine, var0)
+        }
+        playnull()
+        if (FRAMETIME < 32) {
+            spawn(PartC, S_EXPLOSION_SMOKE, 2, 1, routine, var0)
+            unless(flags & 1) {
+                spawn(PartC, S_EXPLOSION_SMOKE, 2, 0, routine, var0)
+            }
+        }
+        else {
+            spawn(PartC, S_EXPLOSION_SMOKE, 1, 1, routine, var0)
+        }
+        playnull()
+        spawn(PartC, S_EXPLOSION_SMOKE, 1, 1, routine, var0)
+        WaitChildNull()
+    }
+}
+
+state Explosion_On_Vertex { // 9
+    stateflag 0x80
+    statusc 0x22
+    code(vert, routine, flags) {
+        getvert(vtrans, creator, vert)
+        changestate(Explosion_Master, routine, flags)
+    }
+}
+
+state Explosion_Smoke { // 10
+    stateflag 0x80080
+    code(mode, routine, a0) {
+        movetolist(3.0)
+        if (mode == 0) {
+            SetScale(0.5S)
+            FlipRand() // No abs
+            ExplodeParticleSetSpeed(10m, 5m, 0m, 4m)
+        }
+        else if (mode == 1) {
+            SetScale(1.5S)
+            FlipRand() // No abs
+            x += randi(-0.5m, 0.5m)
+            z += randi(-0.5m, 0.5m)
+            ExplodeParticleSetSpeed(0m, 2m, 2m, 2m)
+        }
+
+        if (routine) {
+            moda = 16.0
+            miscfunc(self, self, 17, 12)
+            miscfunc(a0, self, 16, 12)
+            miscfunc(call(routine), self, 16, 12)
+            setanim(SMOKE)
+        }
+        else {
+            setanim(EXPLOSION_SMOKE)
+        }
+        zindex = 50
+        SetRot(0deg, 0deg, rand(360deg))
+        y += 0.75m
+        statusb = FLAG_PHYSICS_ENGINE
+        if (creator -> statusb & 0x2000000) {
+            statusb |= 0x2000000
+        }
+        if (mode == 0) {
+            animframe = 0
+            playframes(0.0, 15.0)
+        }
+        else if (mode == 1) {
+            animframe = 0 + rand(3) << 8
+            while (animframe < 15.0) {
+                playframe()
+                animframe += 1.0
+            }
+        }
+    }
+}
+
+state Shockwave { // 11
+    statusc 0x32
+    code(y_off, cr, cg, cb, routine, a0) {
+        zindex = 24
+        moda = 16.0
+        if (routine) {
+            miscfunc(self, self, 17, 12)
+            miscfunc(a0, self, 16, 12)
+            miscfunc(call(routine), self, 16, 12)
+            cr = colr1
+            cg = colg1
+            cb = colb1
+            SetScale(1S)
+        }
+        else {
+            SetColor1(cr, cg, cb)
+        }
+        y += y_off
+        roty = rand(360deg)
+        playframes(SHOCKWAVE, 0.0, 3.0)
+        settrans(ShockwaveColorFade)
+        playframes(SHOCKWAVE, 4.0, 7.0)
+    }
+}
+
+sub ShockwaveColorFade(a, cr, cg, cb) __trans {
+    once {
+        var0 = 4
+    }
+    var0 -= 1
+    SetColor1(cr * var0 >> 2, cg * var0 >> 2, cb * var0 >> 2)
+    if (var0 <= 0) {
+        tpc = 0
+    }
+}
+
+state Explosion { // 12
+    stateflag 0x80001
+    statusc 0x32
+    code(cr, cg, cb, routine, a0) {
+        vfx = (vfx & 0xFFFF00FF) | 0x100
+        zindex = 24
+        moda = 16.0
+        roty = rand(360deg)
+        if (routine) {
+            miscfunc(self, self, 17, 12)
+            miscfunc(routine, self, 16, 12)
+            miscfunc(call(routine), self, 16, 12)
+        }
+        else {
+            SetColor1(cr, cg, cb)
+        }
+        playframes(EXPLOSION, 0.0, 11.0)
+    }
+}
+
+state STATE_13 { // 13
+    statusc 0x32
+    code(cr, cg, cb, velocity, scale) {
+        rotx = 0deg
+        roty = rand(360deg)
+        SetScale(scale)
+        spawn(PartC, S_SPAWN_48, 1, cr, cg, cb, 0, 0, velocity)
+        rotx += 180deg
+        spawn(PartC, S_SPAWN_48, 1, cr, cg, cb, 0, 0, velocity)
+        WaitChildNull()
+    }
+}
+
+expr GEM_RED = 58.0
+expr GEM_GREEN = 59.0
+expr GEM_PURPLE = 60.0
+expr GEM_BLUE = 61.0
+expr GEM_YELLOW = 62.0
+
+sub SetGemElevatorColor(gem_id){
+    SetColor2(-0x725, 0x988, 0xAAF)
+    if (gem_id == GEM_RED) {
+        SetColor1(0x6C, 0x08, 0x08)
+        SetColor2(-0x5F0, 0xEC8, -0x17D)
+    }
+    else if (gem_id == GEM_GREEN) {
+        SetColor1(0x08, 0x6C, 0x08)
+    }
+    else if (gem_id == GEM_PURPLE) {
+        SetColor1(0x6C, 0x08, 0x6C)
+    }
+    else if (gem_id == GEM_BLUE) {
+        SetColor1(0x00, 0x46, 0xFE)
+    }
+    else if (gem_id == GEM_YELLOW) {
+        SetColor1(0x80, 0x80, 0x00)
+        SetScale(1.3S, 1S, 1.3S)
+    }
+    else {
+        SetColor1(0x5A, 0x5A, 0x6C)
+    }
+    moda = 4.0
+}
+
+state STATE_14 { // 14
+    statusc 0x32
+    code(cr, cg, cb, routine, a1, t) {
+        vfx = (vfx & 0xFFFF00FF) | 0x100
+        zindex = 24
+        moda = 16.0
+        roty = rand(360deg)
+        if (routine) {
+            miscfunc(self, self, 17, 12)
+            miscfunc(a1, self, 16, 12)
+            miscfunc(call(routine), self, 16, 12)
+        }
+        else {
+            SetColor1(cr, cg, cb)
+        }
+        playframes(EXPLOSION, t, 0.0, 11.0)
+    }
+}
+
+state Elevator_Init { // 15
+    statusc 0x200002
+    event => state Elevator_Catch
+    __transargs
+    code(const2, ev, obj, const1, flag, ax, ay, az) {
+        troty = 0deg
+        if (flag >= 256.0) {
+            if ((flag >> 8 & 0xFFFFFF00) == 1.0) {
+                if (LEVEL == LEVEL_ColdHardCrash) {
+                    spawn = S_SPAWN_49
+                }
+                if (RESPAWNCOUNT && !entitygetstate(3)) {
+                    spawn = S_SPAWN_51
+                    obj = 0
+                }
+            }
+            else {
+                SetGemElevatorColor(flag >> 8 & 0xFFFFFF00)
+                var itemoffs = flag >> 16
+                if (itemoffs < 32) {
+                    misc = SAVEDGEMPOOL1 & (1 << itemoffs)
+                }
+                else {
+                    misc = SAVEDGEMPOOL2 & (1 << (itemoffs - 32))
+                }
+                if (misc) {
+                    vfx = (vfx & 0xFFFFFF00) | 0xA
+                    vfx = (vfx & 0xFF00FFFF) | 0x40000
+                    troty = 90deg
+                }
+                else {
+                    moda = 14.4
+                    spawn = S_SPAWN_51
+                    obj = 0
+                }
+            }
+        }
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        while (player -> stateflag & 0x2000) {
+            if (player -> stateflag & 0x400000 && BONUSSTATE == BONUS_COMPLETED) {
+                if (LEVEL == LEVEL_Ruination || LEVEL == LEVEL_RoadToRuin) {
+                    sleepnull()
+                }
+                entitysetspawn(0)
+                return
+            }
+            if ((flag >> 8 & 0xFFFFFF00) == 1.0 && !entitygetstate(3)) {
+                entitysetstate(5)
+            }
+            playnull()
+        }
+        if (obj == 0) {
+            tpc = 0
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
+        if (spawn == S_SPAWN_49) {
+            sleepanim(0, ELEVATOR_3)
+        }
+        else {
+            if (spawn == S_SPAWN_51) {
+                if (LEVEL != LEVEL_SewerOrLater) {
+                    statusb = 0
+                }
+                sleepanim(0, ELEVATOR_4)
+            }
+            else if (spawn == S_ELEVATOR_BONUS) {
+                sleepanim(0, ELEVATOR_2)
+            }
+            else {
+                sleepanim(0, ELEVATOR_1)
+            }
+        }
+    }
+    trans {
+        if (collider && (statusa & 0x4000) && !(spawn == S_ELEVATOR_BONUS && BONUSSTATE == BONUS_COMPLETED)) {
+            sendevent(ev, player, obj, const1, flag & 0xFFFF, ax, ay, az, self)
+            changestateif(Elevator_Move, eventaccepted, flag)
+        }
+    }
+}
+
+state Elevator_Move { // 16
+    stateflag 0x81
+    statusc 0x200002
+    code(flag) {
+        statusb &= ~FLAG_SOLID_SIDES
+        if ((flag >> 8 & 0xFFFFFF00) == 1.0) {
+            entitysetstate(5)
+        }
+        if (var S3 = flag & 0xFFFF; S3 == 0) {
+            playframes(1.0, 12.0)
+            do { playframe() } until(pathprog >= pathlen)
+            sendevent(EventTriggered, player)
+        }
+        else if (S3 == 1.0 || S3 == 2.0) {
+            playframe(1.0)
+            playframe(2.0)
+            sendevent(EventTriggered, player)
+            playframes(3.0, 12.0)
+            do { playframe() } until(pathprog >= pathlen)
+            pathprog = pathlen - 1.0
+            sendevent(EventTriggered, player)
+            tpc = 0
+            statusb |= FLAG_SOLID_SIDES
+            sleep()
+        }
+    }
+    trans {
+        pathprog = spd(pathprog, 0.075m)
+        unless(pathprog >= pathlen) {
+            calcpath(pathprog)
+        }
+        roty = spd(roty, troty)
+    }
+}
+
+state Elevator_Catch { // 17
+    statusc 0x200002
+    code(a1, gem_id) {
+        if (gem_id) {
+            vfx = (vfx & 0xFFFFFF00) | 0xA
+            vfx = (vfx & 0xFF00FFFF) | 0x40000
+            SetGemElevatorColor(gem_id)
+        }
+        if (a1 == 1.0) {
+            spawn = S_SPAWN_35
+        }
+        else if (a1 == 2.0) {
+            spawn = S_SPAWN_50
+        }
+        sleepnull()
+    }
+    event(e, a) {
+        if (e == EventTriggered) {
+            pathprog = pathlen - 1.0
+            calcpath(pathprog)
+            accevcstate(Elevator_Catch_Move)
+        }
+    }
+}
+
+state Elevator_Catch_Move { // 18
+    statusc 0x200002
+    code() {
+        statusb = FLAG_CARRY_COLLIDER | FLAG_SOLID_ALL | FLAG_COLLIDABLE
+        if (spawn == S_SPAWN_50 || spawn == S_SPAWN_49) {
+            setanim(ELEVATOR_3)
+        }
+        else if (spawn == S_SPAWN_35 || spawn == S_ELEVATOR_BONUS || spawn == S_SPAWN_34) {
+            setanim(ELEVATOR_2)
+        }
+        else if (spawn == S_HOLE_GATE) {
+            SetScale(0.8S)
+            setanim(ELEVATOR_1)
+        }
+        else {
+            setanim(ELEVATOR_1)
+        }
+
+        do {
+            if (spawn == S_ELEVATOR || spawn == S_ELEVATOR_BONUS || spawn == S_SPAWN_49) {
+                if (pathprog <= 12.0) {
+                    playframe(pathprog)
+                }
+                else {
+                    playframe(12.0)
+                }
+            }
+            else {
+                playframe(12.0)
+            }
+        } while (1)
+    }
+    trans {
+        nofirst {
+            pathprog = spd(pathprog, -0.075m)
+            if (pathprog >= 0) {
+                calcpath(pathprog)
+            }
+            else {
+                pathprog = 0
+                sendevent(EventTriggered, player)
+                tpc = 0
+            }
+        }
+    }
+}
+
+state Hole_Gate { // 19
+    statusc 0x200002
+    __transargs
+    code(a1, a0) {
+        if (a0 == 1.0) {
+            setanim(ELEVATOR_6)
+            spawn = S_SPAWN_34
+            if (!(BONUSSTATE != BONUS_COMPLETED)) {
+                a1 = 0
+            }
+        }
+        else {
+            setanim(ELEVATOR_5)
+        }
+        while (player -> stateflag & 0x2000) {
+            playnull()
+        }
+        if (spawn == S_SPAWN_34 && a1) {
+            settrans(HoleGateTrans)
+        }
+        zindex = 0
+        statusb = FLAG_SOLID_TOP | FLAG_COLLIDABLE | 0x40000000
+        changestateif(Hole_Gate_Open, player -> y < y - 20m, 0)
+        sleepframe(0)
+    }
+    event(e, a) {
+        if (e == EventTriggered) {
+            pathprog = pathlen - 1.0
+            calcpath(pathprog)
+            accevcstate(Elevator_Catch_Move)
+        }
+        accevcstate(Hole_Gate_Open, e == Event46 && a1)
+    }
+}
+
+sub HoleGateTrans() {
+    changestateif(Hole_Gate_Open, collider, 1.0)
+}
+
+state Hole_Gate_Open { // 20
+    statusc 0x200002
+    code(entering) {
+        statusb = 0
+        if (entering) {
+            sounddecay(6.4s)
+            SoundPitchDefault(0.23)
+            soundplay([HgtJA], 0.6V)
+            animframe = -1.0
+            do {
+                animframe += 1.0
+                spawn(PartC, S_MOTH, 1)
+                playframe()
+            } while (animframe + 1.0 <= 9.0)
+        }
+        sleepframe(9.0)
+    }
+    trans {
+        changestateif(Hole_Gate_Closed, player -> stateflag & 0x2000 && player -> y > y, 1.0)
+    }
+}
+
+state Hole_Gate_Closed { // 21
+    statusc 0x200002
+    code(opened) {
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_TOP | 0x40000000
+        if (opened) {
+            playframesback(9.0, 0.0)
+        }
+        sleepframe(0)
+    }
+}
+
+state Moth { // 22
+    code() {
+        zindex = 50
+        roty = rand(360deg)
+        rotz = roty
+        rotx = randi(-40deg, 40deg)
+        velx = randi(-2m, 2m)
+        vely = 2m + rand(4m)
+        velz = randi(-2m, 2m)
+        setanim(MOTH)
+        statusb = FLAG_PHYSICS_ENGINE
+        x += randi(-0.6m, 0.6m)
+        z += randi(-0.6m, 0.6m)
+        do (var i = 0) {
+            playframe(0.0)
+            playframe(3.0)
+            playframe(7.0)
+            playframe(3.0)
+            i += 1.0
+        } while (i < 10.0)
+    }
+    trans {
+        nofirst {
+            velx += randi(-0.18m, 0.18m)
+            vely += randi(-0.09m, 0.09m)
+            velz += randi(-0.18m, 0.18m)
+        }
+    }
+}
+
+state Bonus_Return { // 23
+    statusc 0x200002
+    __transargs
+    code(mode) {
+        if (BONUSSTATE == BONUS_UNVISITED) {
+            sleepnull()
+        }
+        entitysetspawn(0)
+    }
+    trans {
+        nofirst {
+            misc = 0
+            if (mode == 1.0) {
+                if (player -> y <= y && player -> y > y - 4m) {
+                    misc = 1.0
+                }
+            }
+            else if (mode == 2.0) {
+                if (player -> x >= x - 4m && player -> x < x + 4m) {
+                    misc = 1.0
+                }
+            }
+            else if (mode == 3.0) {
+                if (player -> x <= x + 4m && player -> x >= x - 4m) {
+                    misc = 1.0
+                }
+            }
+            else if (mode == 4.0) {
+                if (player -> y >= y && player -> y < y + 4m) {
+                    misc = 1.0
+                }
+            }
+            else if (mode == 5.0) {
+                if (player -> z <= z + 4m && player -> z > z - 4m) {
+                    misc = 1.0
+                }
+            }
+            else if (mode == 6.0) {
+                if (player -> z >= z - 4m && player -> z < z + 4m) {
+                    misc = 1.0
+                }
+            }
+            if (misc) {
+                save(CHECKPOINTID) {
+                    CHECKPOINTID = id
+                    SPAWNTRANSX = x
+                    SPAWNTRANSY = y
+                    SPAWNTRANSZ = z
+                    savecheckpoint(1.0)
+                    if (BONUSSTATE == BONUS_UNVISITED) {
+                        BONUSSTATE = 4.0
+                    }
+                }
+                entitysetspawn(0)
+                changestate(Kill)
+            }
+        }
+    }
+}
+
+state Bonus_Guard { // 24
+    statusc 0x200002
+    code(a3, scax, scay, scaz) {
+        while (player -> stateflag & 0x8000) {
+            playnull()
+        }
+        if (BONUSSTATE != BONUS_COMPLETED) {
+            tpc = 0
+            ins72(0x300, 0x2000)
+            sleepnull()
+        }
+        SetScale(scax, scay, scaz)
+        if ((LEVEL == LEVEL_PistonItAway || LEVEL == LEVEL_SpacedOut) && player -> stateflag & 0x2000) {
+            sleepnull()
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_TOP
+        setanim(ELEVATOR_2)
+        sleepframe(12.0)
+    }
+    event(e, a) {
+        if (e == EventDespawn) {
+            accev()
+            unless(GLOBAL_119 & 0x2000 && BONUSSTATE != BONUS_COMPLETED) {
+                ins72(0x300, 0x2000)
+            }
+        }
+    }
+    trans {
+        nofirst {
+            sendeventif(Event9, player, player -> y < y - 2m)
+            ins72(0x200, 0x2000)
+        }
+    }
+}
+
+state Sewer_Water_Master { // 25
+    stateflag 0x40001
+    __transargs
+    code(y_off) {
+        vfx = (vfx & 0xFFFFFF00) | 0x3
+        SetRot(90deg, 0deg, 0deg)
+        SetScale(0.85S, 0.85S, 0.85S)
+        if (var level = LEVEL; level == LEVEL_SewerOrLater || level == LEVEL_TheEelDeal || level == LEVEL_HanginOut) {
+            do {
+                playanim(0, WATER_SPLASH_RIPPLE, 0.15s)
+                playanim(1, WATER_SPLASH_RIPPLE, 0.15s)
+                playanim(2, WATER_SPLASH_RIPPLE, 0.15s)
+                playanim(3, WATER_SPLASH_RIPPLE, 0.15s)
+                playanim(4, WATER_SPLASH_RIPPLE, 0.15s)
+            } while (1)
+        }
+        else {
+            sleepnull()
+        }
+    }
+    trans {
+        if (creator -> statusa & 0x800000 && GLOBAL_119 & 2) {
+            x = creator -> x
+            z = creator -> z
+            zindex = creator -> zindex - 60
+            y = GLOBAL_118
+            if (creator -> statusa & FLAG_GROUNDLAND && creator -> y < (y - y_off) && GLOBAL_119 & 0x100000) {
+                statetime = frametime
+                sendevent(Event18, creator)
+            }
+            else {
+                if (frametime - statetime >= 0.1s) {
+                    creator -> statusa |= 0x1000000
+                }
+            }
+
+            if (var level = LEVEL; level == LEVEL_SewerOrLater || level == LEVEL_TheEelDeal || level == LEVEL_HanginOut) {
+                if (statusb & FLAG_INVISIBLE && creator -> vely <= 0) {
+                    spawn(PartC, S_SPLASH, 1, -1.0, GLOBAL_118, 5.0, 2m)
+                }
+                unless(abs(creator -> speed) & -4) {
+                    if (creator -> stateflag & 0x400000) {
+                        moda = seek(moda, 16.0, 0x333)
+                    }
+                    else {
+                        moda = seek(moda, 0.0, 0x333)
+                    }
+                }
+                else {
+                    unless(time(0.2s)) {
+                        spawn(PartC, S_WAKE_RIPPLE, 1, creator -> troty, 2)
+                    }
+                    moda = seek(moda, 11.2, 0x333)
+                }
+            }
+            statusb = 0
+            unless(rand(10)) { trotx = 270deg + rand(180deg) }
+            scalex = seek(scalex, trotx, 0x66)
+            unless(rand(10)) { troty = 270deg + rand(180deg) }
+            scaley = seek(scaley, troty, 0x66)
+        }
+        else {
+            statusb = FLAG_INVISIBLE
+            creator -> statusa |= 0x1000000
+        }
+    }
+}
+
+state Water_Wake_Ripple { // 26
+    stateflag 0xC0001
+    code(rot, a0) {
+        vfx = (vfx & 0xFFFFFF00) | 0x3
+        animseq = 0
+        playframe(0, 0.15s)
+        scalex = 1S + rand(0.4S)
+        scaley = scalex
+        SetRot(90deg, rot, rot)
+        do {
+            playanim(0, WATER_WAKE_RIPPLE, 0.1s)
+            playanim(1, WATER_WAKE_RIPPLE, 0.1s)
+            playanim(2, WATER_WAKE_RIPPLE, 0.1s)
+            playanim(3, WATER_WAKE_RIPPLE, 0.1s)
+        } while (1)
+    }
+    trans {
+        scalex = seek(scalex, 0, 61)
+        scaley = seek(scaley, 0, 61)
+        changestateifn(Kill, scalex)
+    }
+}
+
+state Kill { // 27
+    stateflag 0x20
+    statusc 0
+    code() { }
+}
+
+state Water_Splash_Master { // 28
+    stateflag 0x80080
+    statusc 0x22
+    code(vert, base_y, count, velocity) {
+        SoundPitchDefault(0.23)
+        sounddecay(3.2s)
+        soundplay([SplSA], 0.5V)
+        var0 = 0
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        field_61 = 360deg / (count >> 8)
+        roty = 0deg
+        do (var spawns = 0) {
+            spawn(PartC, S_SPLASH_CHILD, 1, base_y, roty + randi(-15deg, 15deg), velocity)
+            roty += field_61
+            spawns += 1.0
+        } while (spawns < count)
+        while (child || var0) {
+            playnull()
+        }
+    }
+}
+
+state Water_Splash_Child { // 29
+    stateflag 0x10
+    code(base_y, rot, velocity) {
+        if (FRAMETIME >= 36) {
+            stalltime = rand(1, 4)
+            statusb = FLAG_INVISIBLE | FLAG_STALL
+            playanim(0, WATER_SPLASH)
+        }
+        y = base_y
+        groundy = base_y
+        SetRot(0deg)
+        SetScale(0.4S + rand(0.2S), scalex, 1S)
+        troty = rot
+        setvel(velocity)
+        if (velocity) {
+            vely = 7.36m + rand(2m)
+            statusb = FLAG_PHYSICS_ENGINE | FLAG_GRAVITY | FLAG_SOLID_GROUND
+            do {
+                playanim(0, WATER_SPLASH)
+            } until(statusa & FLAG_GROUNDLAND && vely < 0m)
+        }
+        changestate(Water_Splash_Ripple, 0.4S)
+    }
+}
+
+state Water_Splash_Ripple { // 30
+    stateflag 0x80010
+    code(scale) {
+        vfx = (vfx & 0xFFFFFF00) | 0x3
+        SetRot(90deg, rand(360deg), roty)
+        SetScale(scale + rand(0.9S), scalex, 1S)
+        FlipRand()
+        statusb = 0
+        playanim(0, WATER_SPLASH_RIPPLE, 0.15s)
+        playanim(1, WATER_SPLASH_RIPPLE, 0.15s)
+        playanim(2, WATER_SPLASH_RIPPLE, 0.15s)
+        playanim(3, WATER_SPLASH_RIPPLE, 0.15s)
+        playanim(4, WATER_SPLASH_RIPPLE, 0.15s)
+    }
+    trans {
+        if (frametime - statetime >= 0.5s) {
+            moda = seek(moda, 16.0, 0x222)
+        }
+    }
+}
+
+state Sewer_Bubble { // 31
+    stateflag 0x80000
+    __transargs
+    code(vert, x_target, y_target, z_target, scale, scale_rand, velocity) {
+        movetolist(3.0)
+        if (vert != -1.0) {
+            getvert(vtrans, creator, vert)
+        }
+        zindex = 50
+        SetRot(0deg)
+        scalex = scale + rand(scale_rand)
+        scaley = scalex
+        trotx = scalex
+        troty = scaley
+        x += randi(-0.2m, 0.2m)
+        y += randi(-0.2m, 0.2m)
+        z += randi(-0.2m, 0.2m)
+        playnull(0.18s)
+        var0 = 0.8s + rand(0.5s)
+        do (var start = frametime) {
+            if (spawn == S_SEWER_BUBBLE_SOUND && y >= GLOBAL_118) {
+                break
+            }
+            playanim(0, SEWER_BUBBLE)
+        } while (frametime - start < var0)
+        settrans(BubbleFade)
+        soundpitch((9.28 + rand(9.28)) * 0.122 >> 8)
+        sounddecay(0.8s)
+        soundplay([PopRA], 0.1V + rand(0.05V))
+        playanim(1, SEWER_BUBBLE, 0.1s)
+    }
+    trans {
+        unless(STATUS_FIRSTFRAME) {
+            x = seek(x, x_target, spd(velocity))
+            y = seek(y, y_target, spd(velocity))
+            z = seek(z, z_target, spd(velocity))
+        }
+    }
+}
+
+sub BubbleFade() {
+    moda = seek(moda, 16.0, 0x666)
+}
+
+state Fire { // 32
+    stateflag 0x80080
+    statusc 0x22
+    __transargs
+    code(vert, rot, angle, velocity, scale) {
+        getvert(vtrans, creator, vert)
+        vely = (sin(angle) * -5m) >> 12
+        SetScale(scale)
+        SetRot(0deg, 0deg, randi(-45deg, 45deg))
+        zindex = 40
+        if (time(3)) {
+            statusb = FLAG_PHYSICS_ENGINE
+        }
+        else {
+            statusb = FLAG_COLLIDABLE | FLAG_PHYSICS_ENGINE
+        }
+        troty = rot
+        playframes(FIRE_PARTICLE, 0.0, 10.0)
+    }
+    trans {
+        scalex += 0x199
+        scaley = scalex
+        scalez = scalex
+        velocity = (velocity * 1.2) >> 8
+        setvel(velocity)
+        sendeventif(EventBurn, collider, statusb & FLAG_COLLIDABLE, 100.0)
+    }
+}
+
+state Space_Sky { // 33
+    stateflag 0x40001
+    statusc 0
+    code() {
+        vfx = (vfx & 0xFF00FFFF) | 0x30000
+        vfx = (vfx & 0xFFFFFF00) | 0x6
+        statusb = FLAG_NO_CAMERA_CLIP | 0x2000000
+        zindex = -0x800
+        SetRot(0deg)
+        SetTrans(0, 0, 0)
+        SetScale(2.8S, 2.8S, 1S)
+        do {
+            if (GLOBAL_119 & 0x4000) {
+                playanim(0, SKY_BOX)
+            }
+            else {
+                playnull()
+            }
+        } while (1)
+    }
+    trans {
+        rotz += 0.2deg
+        roty = -CAMROTY
+        rotx = -CAMROTX
+    }
+}
+
+state Spark { // 34
+    stateflag 0x80001
+    statusc 0x12
+    __transargs
+    code(vert) {
+        SetScale(1.5S, 0.75S, 0.75S)
+        zindex = 24
+        do (var start = frametime) {
+            if (!rand(5)) {
+                statusb = FLAG_INVISIBLE
+                playanim(0, SPARK_PARTICLE, 0.1s)
+                if (!rand(2)) {
+                    sounddecay(3.85s)
+                    soundpitch((12.8 + rand(6.4)) * 0.43 >> 8)
+                    soundplay([sp23A], 0.5V + rand(0.1V))
+                }
+                else {
+                    sounddecay(3.85s)
+                    soundpitch((12.8 + rand(6.4)) * 0.43 >> 8)
+                    soundplay([sp13A], 0.5V + rand(0.1V))
+                }
+            }
+            statusb = 0
+            rotz = rand(360deg)
+            playframes(SPARK_PARTICLE, 0.0, 8.0)
+        } while (frametime - start < 0.55s)
+    }
+    event(e, a) {
+        if (e == Event14) {
+            accev()
+            tpc = 0
+        }
+    }
+    trans {
+        getvert(vtrans, creator, vert)
+    }
+}
+
+state Spark_Crawl { // 35
+    stateflag 0x80001
+    statusc 0x12
+    event => state Spark
+    __transargs
+    code(vert) {
+        pathprog = randi(-0.99, 0.99)
+        zindex = 40
+        rotx = 0deg
+        roty = 0deg
+        SetScale(1.3S, 0.5S, 0.5S)
+        sounddecay(3.85s)
+        soundpitch((6.4 + rand(3.2)) * 0.43 >> 8)
+        soundplay([sp13A], 0.3V + rand(0.3V))
+        do (var start = frametime) {
+            if (!rand(5)) {
+                statusb = FLAG_INVISIBLE
+                playanim(0, SPARK_PARTICLE, 0.1s)
+                if (!rand(2)) {
+                    sounddecay(3.85s)
+                    soundpitch((6.4 + rand(3.2)) * 0.43 >> 8)
+                    soundplay([sp23A], 0.3V + rand(0.3V))
+                }
+                else {
+                    sounddecay(3.85s)
+                    soundpitch((6.4 + rand(3.2)) * 0.43 >> 8)
+                    soundplay([sp13A], 0.3V + rand(0.3V))
+                }
+            }
+            statusb = 0
+            rotz = rand(360deg)
+            playframes(SPARK_PARTICLE, 0.0, 8.0)
+        } while (frametime - start < 1.55s)
+    }
+    trans {
+        nofirst {
+            null = loopseek(pathprog, 1.0, 12) // Fix?
+            getvert(vtrans, creator, vert)
+            getvert(vvec, creator, vert)
+            x += (vecx - x) * abs(pathprog) >> 8
+            y += (vecy - y) * abs(pathprog) >> 8
+            z += (vecz - z) * abs(pathprog) >> 8
+        }
+    }
+}
+
+state Reflection { // 36
+    stateflag 0x40001
+    statusc 0x12
+    code() {
+        do {
+            if (ZONEFLAGS & 0x800 && GLOBAL_119 & 0x1000) {
+                x = parent -> x
+                y = parent -> y
+                animframe = parent -> animframe
+                animseq = parent -> animseq
+                vfx = parent -> vfx
+                rotx = parent -> rotx
+                rotz = parent -> rotz
+                scaley = parent -> scaley
+                scalez = parent -> scalez
+                vfx &= 0xFFFF00FF
+                scalex = -parent -> scalex
+                zindex = parent -> zindex
+                roty = 90deg - degdist(90deg, parent -> roty)
+                z = GLOBAL_93 - (parent -> z - GLOBAL_93)
+                playframe()
+            }
+            else {
+                playnull()
+            }
+        } while (1)
+    }
+}
+
+state River_Bubble { // 37
+    stateflag 0x80001
+    code(y_target, y_base, vert, x_off, z_off) {
+        movetolist(3.0)
+        if (vert == -1.0) {
+            y = y_base
+        }
+        else {
+            getvert(vtrans, creator, vert)
+        }
+        x += x_off
+        z += z_off
+        scalex = 0.2S + rand(0.3S)
+        scaley = scalex
+        SetRot(0deg)
+        zindex = 24
+        statusb = FLAG_PHYSICS_ENGINE
+        velx = randi(-0.6m, 0.6m)
+        vely = 1m + rand(1.5m)
+        velz = randi(-0.6m, 0.6m)
+        do { playanim(0, RIVER_BUBBLE) } until(y >= y_target)
+        y = y_target
+        soundpitch((9.28 + rand(9.28)) * 0.122 >> 8)
+        sounddecay(0.8s)
+        soundplay([PopRA], 0.1V + rand(0.05V))
+        changestate(Water_Splash_Ripple, 0.1V)
+    }
+}
+
+state Willy_Breath_Vapor { // 38
+    stateflag 0x40001
+    code(vert) {
+        do {
+            var0 = getfield(creator, 0x4C00)
+            if (var0 == 0) {
+                if (creator -> speed > 3m) {
+                    if (time(0.35s)) {
+                        playnull()
+                        continue
+                    }
+                }
+                else if (time(2s)) {
+                    playnull()
+                    continue
+                }
+            }
+            else if (var0 == 2) {
+                if (time(0.15s)) {
+                    playnull()
+                    continue
+                }
+            }
+            else if (var0 == 3) {
+                playnull()
+                continue
+            }
+            unless(creator -> stateflag & 0x8000 || creator -> stateflag & 0x20) {
+                getvert(vtrans, creator, vert)
+                y -= 0.07m
+                troty = parent -> roty
+                setvel(1m)
+                x -= velx >> 3
+                z -= velz >> 3
+                if (abs(degdist(CAMROTY, creator -> roty)) < 90deg) {
+                    zindex = 70
+                }
+                else {
+                    zindex = -50
+                }
+                spawn(PartC, S_SMOKE_GENERIC, 1, -1.0, velx, 1.5m, velz, 0.6S, 0, zindex, 19)
+            }
+            playnull()
+        } while (1)
+    }
+}
+
+state Footprint { // 39
+    stateflag 0x80001
+    code(offs, rot, scale) {
+        troty = rot
+        vectransf2(vtrans, self, 0, offs, 0)
+        vfx = (vfx & 0xFFFFFF00) | 0x3
+        SetScale(scale, abs(scale), 1S)
+        rotx = 90deg
+        rotz = roty
+        zindex = 24
+        playanim(0, FOOTPRINT, 1.18s)
+        settrans(FootprintFade)
+        sleepanim(0, FOOTPRINT)
+    }
+}
+
+sub FootprintFade() {
+    moda = seek(moda, 16.0, 0xA3)
+    changestateif(Kill, moda == 16.0)
+}
+
+state Alpine_Dirt { // 40
+    stateflag 0x80001
+    code(scale) {
+        zindex = 58
+        SetScale(scale)
+        SetRot(0deg)
+        groundy = y
+        ExplodeParticleSetSpeed(0.5m, 3m, 5m, 3m)
+        statusb = FLAG_PHYSICS_ENGINE | FLAG_GRAVITY | FLAG_SOLID_GROUND
+        setanim(ALPINE_DIRT)
+        playframe(rand(2.0), 0.85s)
+    }
+    trans {
+        if (statusa & FLAG_GROUNDLAND && vely < 1) {
+            tpc = 0
+        }
+        else {
+            rotz += 8deg
+        }
+    }
+}
+
+state Sewer_Eyes { // 41
+    __transargs
+    code(vert, scale) {
+        SetScale(scale)
+        SetRot(0deg)
+        zindex = 80
+        do {
+            if (abs(degdist(creator -> roty, GAMEDIR + 180deg)) < 90deg) {
+                playnull()
+            }
+            else {
+                playanim(0, SEWER_EYES)
+            }
+        } while (1)
+    }
+    trans {
+        getvert(vtrans, creator, vert)
+        rotz = spd(rotz, 360deg)
+    }
+}
+
+inline sub SetParentColor(r, g, b) {
+    parent -> colr1 = r
+    parent -> colg1 = g
+    parent -> colb1 = b
+}
+
+state Crystal_Glow { // 42
+    stateflag 0x120001
+    __transargs
+    code(mode) {
+        unless(creator -> stateflag & 0x100000) {
+            stateflag &= ~0x100000
+        }
+        if ((creator -> vfx & 0xFF) == 6 || (creator -> vfx & 0xFF) == 11 || (creator -> vfx & 0xFF) == 13 || (creator -> vfx & 0xFF) == 14) {
+            vfx = creator -> vfx
+        }
+        else {
+            vfx = (vfx & 0xFFFFFF00) | 0x2
+        }
+        vfx &= 0xFF00FFFF
+        vfx = (vfx & 0xFFFF00FF) | 0x100
+        SetRot(0deg)
+        zindex = parent -> zindex - 80
+        if (mode == 1) {
+            mem1 = 0x5C800
+            mem2 = -0x127
+            mem3 = 0x13D800
+            mem4 = 0x11C
+            mem5 = 0x7D000
+            mem6 = -0x1C7
+        }
+        else if (mode == 2) {
+            mem1 = 0x5C800
+            mem2 = -0x15B
+            mem3 = 0x156800
+            mem4 = 0x11C
+            mem5 = 0x7D000
+            mem6 = -0x1C7
+        }
+        else if (mode == 3) {
+            mem1 = 0x64000
+            mem2 = -0x11C
+            mem3 = 0x13D800
+            mem4 = 0x11C
+            mem5 = 0x7D000
+            mem6 = -0x1C7
+        }
+        else if (mode == 4) {
+            mem1 = 0x64000
+            mem2 = 0x88
+            mem5 = 0x12C000
+            mem6 = -0x88
+            mem3 = 0x7D000
+            mem4 = 0x22
+        }
+        sleepanim(0, CRYSTAL_GLOW)
+    }
+    trans {
+        x = parent -> x
+        y = parent -> y
+        z = parent -> z
+        statusb = parent -> statusb & FLAG_INVISIBLE
+
+        if (var S3 = frametime & 31; S3 == 0 || S3 == 2) {
+            SetParentColor(0xF4, 0xAF, 0xFF)
+        }
+        else if (S3 == 1) {
+            SetParentColor(0xFF, 0xFF, 0xFF)
+        }
+        else {
+            SetParentColor(0xE9, 0x5F, 0xFF)
+        }
+        x = parent -> x
+        y = parent -> y
+        z = parent -> z
+        unless(STATUS_FIRSTFRAME) {
+            if (mode) {
+                var0 = player -> z - z
+                if (var0 < 0) {
+                    vecx = mem6
+                    vecy = mem5
+                    var0 = -var0
+                }
+                else {
+                    vecx = mem4
+                    vecy = mem3
+                }
+                if (var0 > vecy) {
+                    var0 = vecy
+                }
+                rotz = mem2 + (var0 * vecx) / vecy
+            }
+        }
+    }
+}
+
+state Audio_Streamer { // 43
+    stateflag 0x120001
+    code(file_a, file_b, count, delay, pitch) {
+        vfx = (vfx & 0xFFFFFF00) | 0x6
+        field_61 = &count
+        field_61 = field_61 - (count >> 8 << 2)
+        stalltime = false
+        groundy = 0
+        vecx = field_61[0]
+        vecy = 0
+        loadfile(vecx)
+        sounddecay(10.22s)
+        soundplay(vecx, 0V)
+        do { playnull() } until(isloaded(vecx))
+        do { playnull() } until(stalltime || frametime - statetime >= delay)
+        var S3 = 0
+        stalltime = true
+        sounddecay(10.22s)
+        soundpitch(pitch)
+        soundplay(vecx, 1.28V)
+        groundy = voice
+        statetime = frametime
+        pathprog = 0
+        playnull()
+        while (S3 < count) {
+            S3 += 1.0
+            if (S3 < count) {
+                vecy = field_61[S3]
+                loadfile(vecy)
+                sounddecay(10.22s)
+                soundplay(vecy, 0)
+                soundsetup(vecy, groundy, 13)
+                while (misc) {
+                    playnull()
+                    soundcheck(groundy)
+                }
+                deloadfile(vecx)
+                vecx = vecy
+                vecy = 0
+            }
+        }
+        until(misc == -1) {
+            playnull()
+            soundcheck(groundy)
+        }
+        stateflag |= 0x20
+        groundy = 0
+        deloadfile(vecx)
+        vecx = 0
+        playnull(21)
+    }
+    event(e, a) {
+        if (e == EventTriggered) {
+            accev()
+            stalltime = true
+        }
+        if (e == Event12 || e == EventDespawn) {
+            if (groundy) {
+                soundsetup(0, groundy, 0, 5)
+                soundsetup(3, groundy, 0, 6)
+                soundsetup(0, groundy, 3, 0)
+            }
+            if (vecx) deloadfile(vecx);
+            if (vecy) deloadfile(vecy);
+            accevcstate(Kill)
+        }
+    }
+    trans {
+        if (stalltime) {
+            pathprog = frametime - statetime
+        }
+        else {
+            pathprog = 0
+        }
+    }
+}
