@@ -70,18 +70,17 @@ state Firefly_Init { // 0
 }
 
 sub UpdateFireflyRotation() {
-    var pitch, yaw, v3
-    var local_z = velz, local_x = velx, inverse_yaw, horizontal_dist
-    v3 = atan(local_x, local_z)
-    yaw = v3 % 360deg
-    inverse_yaw = -v3
-    local_z = ((local_z >> 8) * cos(inverse_yaw)) >> 4
-    horizontal_dist = local_z - (((local_x >> 8) * sin(inverse_yaw)) >> 4)
-    pitch = atan(vely, horizontal_dist) % 360deg
+    var pitch, yaw, angle
+    var local_z = velz, local_x = velx, neg_yaw, flat_spd
+    angle = atan(local_x, local_z)
+    yaw = angle % 360deg
+    neg_yaw = -angle
+    local_z = ((local_z >> 8) * cos(neg_yaw)) >> 4
+    flat_spd = local_z - (((local_x >> 8) * sin(neg_yaw)) >> 4)
+    pitch = atan(vely, flat_spd) % 360deg
     rotx = -pitch
     rotz = yaw
     roty = yaw
-
 }
 
 sub RegisterLightSource(){
@@ -90,13 +89,13 @@ sub RegisterLightSource(){
             if (GLOBAL_120 == 0) {
                 GLOBAL_120 = self
                 GLOBAL_55 += 1.0
-                LightSourceRegistered = 1
+                LightSourceRegistered = true >> 8
             }
         }
         else {
             GLOBAL_54 = self
             GLOBAL_55 += 1.0
-            LightSourceRegistered = 1
+            LightSourceRegistered = true >> 8
         }
     }
 }
@@ -197,13 +196,13 @@ state Firefly_Attached { // 2
             vecz = z - player -> z
             var orbit_z = vecz
             var orbit_x = vecx
-            var inverse_orbit_yaw = 0
+            var neg_yaw = 0deg
             OrbitYaw = atan(orbit_x, orbit_z)
-            inverse_orbit_yaw = -OrbitYaw
-            orbit_z = ((orbit_z >> 8) * cos(inverse_orbit_yaw)) >> 4
-            var horizontal_dist = orbit_z - (((orbit_x >> 8) * sin(inverse_orbit_yaw)) >> 4)
+            neg_yaw = -OrbitYaw
+            orbit_z = ((orbit_z >> 8) * cos(neg_yaw)) >> 4
+            var flat_spd = orbit_z - (((orbit_x >> 8) * sin(neg_yaw)) >> 4)
             OrbitYaw &= 0xFFF
-            OrbitPitch = atan(vecy, horizontal_dist) % 360deg
+            OrbitPitch = atan(vecy, flat_spd) % 360deg
             var0 = 0
             if (OrbitPitch > 180deg) {
                 OrbitPitch = 0deg
@@ -234,9 +233,11 @@ state Firefly_Attached { // 2
                 TargetOrbitPitch = rand(80deg) + 15deg
             }
         }
+
         /*TODO: Fix this? CE gool disasm shows native restarting after a nop with no preceding gool instruction..
-        * Crash 3 uses degseek here but causes issues with pre detach rise and orbit height..? I dont know. Current implementation looks werid but seems to work fine. */
-        OrbitPitch = seek(loopseek(OrbitPitch, TargetOrbitPitch), 45deg) 
+        * Crash 3 uses degseek here but causes issues with pre detach rise and orbit height..? I dont know. Current implementation looks weird but seems to work fine. */
+        OrbitPitch = seek(loopseek(OrbitPitch, TargetOrbitPitch), 45deg)
+
         OrbitYaw = (OrbitYaw + OrbitYawSpeed) % 360deg
         OrbitYawSpeed = seek(OrbitYawSpeed, 16.8deg, 1deg)
 
@@ -475,7 +476,6 @@ state Flare_Master { // 6
             velx = (((-x) << 1) + (((-x) << 1) >> 2)) / 12
             vely = (((-y) << 1) + (((-y) << 1) >> 2)) / 12
         }
-
     }
 }
 
@@ -689,7 +689,7 @@ state Firefly_Path_Active { // 11
         if (STATUS_FIRSTFRAME) {
             trotx = 360deg
             yzapproach = 180deg
-            CanFollowPath = 1
+            CanFollowPath = true >> 8
             PathBobVelocity += 30.4
         }
 
@@ -714,5 +714,4 @@ state Firefly_Path_End_Idle { // 12
         FireflyPathMotion()
     }
 }
-
 

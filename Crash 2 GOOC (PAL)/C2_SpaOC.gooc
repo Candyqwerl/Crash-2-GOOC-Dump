@@ -54,7 +54,7 @@
 
 #include "C2_ShadC.gooh"
 
-var BallCyclelen, BallCycleoff, BallPathlen, SpaceVar4, SpaceVar5, SpaceVar6, SpaceVar7,
+var BallCyclelen, BallCycleOffs, BallPathlen, SpaceVar4, SpaceVar5, SpaceVar6, SpaceVar7,
     SpaceVar8, SpaceVar9, SpaceVar10, RadiusCycle, RadiusInc, RadiusPhase, OrbitRadius,
     SpaceVar15, OrbitAngle, CableSpark
 
@@ -170,7 +170,7 @@ state Space_Floor { // 5
     statusc 0x22
     code() {
         unless(player -> stateflag & 0x4000000) {
-            settrans(Space_Pad_Trans)
+            settrans(SpacePadTrans)
         }
         y += 2m
         statusb = FLAG_INVISIBLE | FLAG_COLLIDABLE
@@ -195,7 +195,7 @@ state Kill { // 6
 
 state Space_Pad { // 7
     statusc 0x22
-    trans => sub Space_Pad_Trans
+    trans => sub SpacePadTrans
     code() {
         zindex = 25
         playframes(JETPACK_DISCARD, 0.0, 20.0)
@@ -205,7 +205,7 @@ state Space_Pad { // 7
     }
 }
 
-sub Space_Pad_Trans() {
+sub SpacePadTrans() {
     sendeventif(Event9, player, player -> y < y - 2m, 100.0)
     if (player -> z > z + 3m) {
         player -> z = z + 3m
@@ -267,7 +267,7 @@ state Space_Door_Open { // 10
         }
         sleep()
     }
-    trans { // MIPS
+    trans { 
         changestateif(Space_Door_Wait, player -> velz > 0 && player -> z > z + 4.1m)
     }
 }
@@ -432,17 +432,17 @@ state Space_Cable { // 18
 
 state Space_Gun_Init { // 19
     statusc 0x22
-    code(cycleoff) {
+    code(cycleoffs) {
         vfx = (vfx & 0xFF00FFFF) | 0x10000
         statusb = FLAG_COLLIDABLE | FLAG_NO_CAMERA_CLIP
-        if (cycleoff == 0) {
+        if (cycleoffs == 0) {
             changestate(SpaceGun_Phase_1)
         }
-        else if (cycleoff == 1.0) {
+        else if (cycleoffs == 1.0) {
             changestate(SpaceGun_Phase_2)
         }
         else {
-            changestateif(SpaceGun_Phase_3, cycleoff == 2.0)
+            changestateif(SpaceGun_Phase_3, cycleoffs == 2.0)
         }
     }
 }
@@ -580,9 +580,9 @@ state SpaceGun_Phase_3 { // 22
 
 state Spaceball_Homing_Init { // 23
     statusc 0x22
-    code(triggerdist) {
+    code(dist) {
         statusb = FLAG_SOLID_ALL | FLAG_COLLIDABLE
-        field_61 = triggerdist
+        field_61 = dist
         vecx = x
         vecy = y
         vecz = z
@@ -636,30 +636,30 @@ state Spaceball_Homing { // 24
 
 state Space_Ring { // 25
     statusc 0x22
-    code(count, min_radius, max_radius, cyclelen, cycleoff, radius_cyclelen, radius_cycleoff, ua1, orbit) {
-        var OrbitCycleLen = cyclelen * 1s / 1.2s
-        var OrbitCycleOffs = cycleoff * 1s / 1.2s
-        var RadiusCycleLen = radius_cyclelen * 1s / 1.2s
-        var RadiusCycleOffs = radius_cycleoff * 1s / 1.2s
-        var OrbAngleInc = 360deg / count
-        var OrbAngle = 0
+    code(count, radius_min, radius_max, orbit_cyclet, orbit_cycleoffs, radius_cyclet, radius_cycleoffs, unused, orbit) {
+        var orbit_cycletime = orbit_cyclet * 1s / 1.2s
+        var orbit_cycleoffs = orbit_cycleoffs * 1s / 1.2s
+        var radius_cycletime = radius_cyclet * 1s / 1.2s
+        var radius_cycleoffs = radius_cycleoffs * 1s / 1.2s
+        var angle_inc = 360deg / count
+        var angle = 0
 
         do (var balls = 0) {
-            spawn(SpaOC, S_SPACEBALL, 1, OrbAngle)
-            OrbAngle += OrbAngleInc
+            spawn(SpaOC, S_SPACEBALL, 1, angle)
+            angle += angle_inc
             balls += 1
         } while (balls < count)
 
         statusb = FLAG_INVISIBLE
-        OrbitRadius = min_radius
-        RadiusCycle = RadiusCycleLen << 1
-        RadiusInc = (max_radius - min_radius) / RadiusCycleLen
+        OrbitRadius = radius_min
+        RadiusCycle = radius_cycletime << 1
+        RadiusInc = (radius_max - radius_min) / radius_cycletime
 
-        if (max_radius == min_radius) {
+        if (radius_max == radius_min) {
             do {
                 changestateif(Spaceball_Shrink, player -> z < z - 0.5m)
-                if (orbit && OrbitCycleLen) {
-                    rotx = (time(OrbitCycleLen, OrbitCycleOffs) << 12) / OrbitCycleLen
+                if (orbit && orbit_cycletime) {
+                    rotx = (time(orbit_cycletime, orbit_cycleoffs) << 12) / orbit_cycletime
                 }
                 else {
                     rotx = 0deg
@@ -670,18 +670,18 @@ state Space_Ring { // 25
         else {
             do {
                 changestateif(Spaceball_Shrink, player -> z < z - 0.5m)
-                if (orbit && OrbitCycleLen) {
-                    rotx = (time(OrbitCycleLen, OrbitCycleOffs) << 12) / OrbitCycleLen
+                if (orbit && orbit_cycletime) {
+                    rotx = (time(orbit_cycletime, orbit_cycleoffs) << 12) / orbit_cycletime
                 }
                 else {
                     rotx = 0deg
                 }
-                RadiusPhase = time(RadiusCycle, RadiusCycleOffs)
-                if (RadiusPhase > RadiusCycleLen) {
-                    OrbitRadius = min_radius + ((RadiusPhase - RadiusCycleLen) * RadiusInc)
+                RadiusPhase = time(RadiusCycle, radius_cycleoffs)
+                if (RadiusPhase > radius_cycletime) {
+                    OrbitRadius = radius_min + ((RadiusPhase - radius_cycletime) * RadiusInc)
                 }
                 else {
-                    OrbitRadius = min_radius + ((RadiusCycleLen - RadiusPhase) * RadiusInc)
+                    OrbitRadius = radius_min + ((radius_cycletime - RadiusPhase) * RadiusInc)
                 }
                 playnull()
             } while (1)
@@ -704,9 +704,9 @@ state Spaceball_Shrink { // 26
 
 state Spaceball { // 27
     statusc 0x10
-    code(orb_angle) {
+    code(angle) {
         spawn(ShadC, ShadC_S_SHADOW, 1, 0, 1.5S, 0)
-        OrbitAngle = orb_angle
+        OrbitAngle = angle
         statusb = FLAG_COLLIDABLE | FLAG_HAS_SHADOW
         vecx = parent -> x
         vecy = parent -> y
@@ -734,18 +734,18 @@ state Spaceball { // 27
 
 state Spaceball_Path { // 28
     statusc 0
-    code(cyclelen, cycleoff) {
+    code(cyclelen, cycleoffs) {
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
         BallCyclelen = cyclelen * 1s / 1.2s
-        BallCycleoff = cycleoff * 1s / 1.2s
+        BallCycleOffs = cycleoffs * 1s / 1.2s
         BallPathlen = (pathlen << 1) / (BallCyclelen + 1)
         sleepframes(SPACEBALL, 0.0, 99.0)
     }
     trans {
         nofirst {
             unless(statusb & FLAG_INVISIBLE) {
-                var cycletime = time(BallCyclelen, BallCycleoff)
-                calcpath(abs((BallCyclelen - (BallCycleoff >> 1)) * BallPathlen))
+                var cycletime = time(BallCyclelen, BallCycleOffs)
+                calcpath(abs((BallCyclelen - (BallCycleOffs >> 1)) * BallPathlen))
                 if (BallCyclelen >= BallCyclelen >> 1) {
                     statusa |= 0x4
                 }

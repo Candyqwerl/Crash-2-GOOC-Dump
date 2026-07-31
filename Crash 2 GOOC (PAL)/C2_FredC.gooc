@@ -24,17 +24,17 @@ expr TENTACLE_CYCLE = 0
 expr TENTACLE_EXTENDED = 1
 expr TENTACLE_RETRACTED = 2
 
-var CycleOff, CycleLen, TurnLen, FredVar4, FredTrackOffset, PathTravelTime, CycleMode,
+var CycleOffs, CycleLen, TurnTime, FredVar4, FredTrackOffset, PathTravelTime, CycleMode,
     JumpVulnerable, SlideVulnerable, RetractFrameOffset, FredStatic, SlideVulnerableTime, SparkScale
 
 state Fred_Init {
     statusc 0x12
-    code(track_max, cyclelen, cycleoff, retractoff, stance, static){
+    code(track_max, cyclelen, cycleoffs, retractoffs, stance, static){
         pathdist = track_max
         CycleLen = cyclelen * 1s / 1.2s
-        CycleOff = cycleoff * 1s / 1.2s
+        CycleOffs = cycleoffs * 1s / 1.2s
         CycleMode = stance
-        RetractFrameOffset = (retractoff * 1s / 1.2s) & -1.0
+        RetractFrameOffset = (retractoffs * 1s / 1.2s) & -1.0
         FredStatic = static
         soundpitch(3.625)
         sounddecay(10s)
@@ -45,24 +45,24 @@ state Fred_Init {
         FredVar4 = 0
         spawn(ShadC, ShadC_S_SHADOW_STATIONARY, 1, 0, 1S, 10)
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | 0x20000000
-        do (var sparks = 0) {
-            spawn(FredC, S_SPARK, 1, sparks)
-            sparks += 1.0
-        } while (sparks < 6.0)        
+        do (var vert = 0) {
+            spawn(FredC, S_SPARK, 1, vert)
+            vert += 1.0
+        } while (vert < 6.0)        
         if (CycleMode == TENTACLE_CYCLE) {
-            TurnLen = CycleLen - 3.45s >> 1
+            TurnTime = CycleLen - 3.45s >> 1
             PathTravelTime = 1.75s
         }
         else if (CycleMode == TENTACLE_EXTENDED) {
-            TurnLen = CycleLen - 3.55s >> 1
+            TurnTime = CycleLen - 3.55s >> 1
             PathTravelTime = 1.78s
         }
         else if (CycleMode == TENTACLE_RETRACTED) {
-            TurnLen = CycleLen - 3.55s >> 1
+            TurnTime = CycleLen - 3.55s >> 1
             PathTravelTime = 1.78s
         }
         if (FredStatic) {
-            TurnLen = 0s
+            TurnTime = 0s
             roty = 90deg
         }
         changestate(Fred)
@@ -72,7 +72,7 @@ state Fred_Init {
 state Fred {
     stateflag 0x5
     statusc 0
-    code(){ // MIPS
+    code() {
         do {
             if (CycleMode == TENTACLE_CYCLE) {
                 if (FredStatic) {
@@ -124,16 +124,16 @@ state Fred {
                 SlideVulnerableTime = frametime
             }
 
-            var cycletime = time(CycleLen, CycleOff)
+            var cycletime = time(CycleLen, CycleOffs)
             var frame = 0
             var pathpoint = 0
-            if (TurnLen > 0 && cycletime >= 0 && cycletime <= TurnLen) {
-                roty = 90deg + ((cycletime * -180deg) / TurnLen)
+            if (TurnTime > 0 && cycletime >= 0 && cycletime <= TurnTime) {
+                roty = 90deg + ((cycletime * -180deg) / TurnTime)
             }
-            else if (cycletime >= TurnLen && cycletime <= TurnLen + PathTravelTime) {
-                var TravelTime = cycletime - TurnLen
-                pathpoint = (TravelTime * (pathlen - 1.0)) / PathTravelTime
-                frame = (TravelTime * (44.0 - 1)) / PathTravelTime
+            else if (cycletime >= TurnTime && cycletime <= TurnTime + PathTravelTime) {
+                var travel_time = cycletime - TurnTime
+                pathpoint = (travel_time * (pathlen - 1.0)) / PathTravelTime
+                frame = (travel_time * (44.0 - 1)) / PathTravelTime
                 if (CycleMode == TENTACLE_CYCLE) {
                     animframe = (frame + RetractFrameOffset) % 86.0
                 }
@@ -145,13 +145,13 @@ state Fred {
                 }
                 calcpath(pathpoint)
             }
-            else if (TurnLen > 0 && cycletime >= TurnLen + PathTravelTime && cycletime <= (TurnLen << 1) + PathTravelTime) {
-                var turn_time = cycletime - (TurnLen + PathTravelTime)
-                roty = 270deg + ((turn_time * 180deg) / TurnLen)
+            else if (TurnTime > 0 && cycletime >= TurnTime + PathTravelTime && cycletime <= (TurnTime << 1) + PathTravelTime) {
+                var turn_time = cycletime - (TurnTime + PathTravelTime)
+                roty = 270deg + ((turn_time * 180deg) / TurnTime)
             }
-            else if (cycletime >= (TurnLen << 1) + PathTravelTime && cycletime <= CycleLen) {
-                var return_time = cycletime - ((TurnLen << 1) + PathTravelTime)
-                var return_duration = CycleLen - ((TurnLen << 1) + PathTravelTime)
+            else if (cycletime >= (TurnTime << 1) + PathTravelTime && cycletime <= CycleLen) {
+                var return_time = cycletime - ((TurnTime << 1) + PathTravelTime)
+                var return_duration = CycleLen - ((TurnTime << 1) + PathTravelTime)
                 pathpoint = (pathlen - 1.0) + ((return_time * -(pathlen - 1.0)) / return_duration)
                 frame = 44.0 + ((return_time * (42.0 - 1)) / return_duration)
                 if (CycleMode == TENTACLE_CYCLE) {

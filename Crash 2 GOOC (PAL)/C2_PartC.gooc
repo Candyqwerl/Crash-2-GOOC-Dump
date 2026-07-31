@@ -373,7 +373,7 @@
 #spawn S_RIVER_BUBBLE            River_Bubble
 #spawn S_30                      __s_30
 #spawn S_ELEVATOR_BONUS          Elevator_Init
-#spawn S_SPAWN_32                Elevator_Catch
+#spawn S_ELEVATOR_CATCH          Elevator_Catch
 #spawn S_HOLE_GATE               Hole_Gate
 #spawn S_SPAWN_34                Hole_Gate
 #spawn S_SPAWN_35                Elevator_Catch
@@ -410,7 +410,7 @@ state Willy_Burn_Smoke { // 0
         SetRot(0deg, 0deg, rand(360deg))
         zindex = 24
         if (creator -> statusb & 0x2000000 || creator == player) {
-            statusb = 0x2000040
+            statusb = FLAG_PHYSICS_ENGINE | 0x2000000
         }
         else {
             statusb = FLAG_PHYSICS_ENGINE
@@ -461,14 +461,14 @@ state Willy_Smoke_Generic { // 1
         SetRot(0deg, 0deg, rand(360deg))
         zindex = 24
         ExplodeParticleSetSpeed(0.3m, 0.3m, 0.04m, 0.6m)
-        statusb = 0x2000040
+        statusb = FLAG_PHYSICS_ENGINE | 0x2000000
         setanim(SMOKE, 3.0)
         do {
             animframe += 1.0
             if (var0) {
                 return
             }
-            playframe(animframe)
+            playframe()
         } while (animframe + 1.0 <= 15.0)
     }
 }
@@ -517,7 +517,7 @@ state Willy_Bodyslam_Smoke_Child { // 3
         }
         scaley = abs(scalex)
         vely = rand(0.4m)
-        statusb = 0x2001040
+        statusb = FLAG_PHYSICS_ENGINE | 0x1000 | 0x2000000
         playframes(SMOKE, 0.0, 15.0)
     }
     trans {
@@ -542,12 +542,8 @@ state Exhaust_Smoke { // 4
         scalex = !rand(2) ? 0.4S + rand(0.1S) : -(0.4S + rand(0.1S))
         scaley = abs(scalex)
         scalez = 0
-        statusb = 0x2000040
-        setanim(EXHAUST_SMOKE)
-        animframe = (time(3) << 8) - 3.0
-        do {
-            playframe(animframe + 3.0)
-        } while (animframe + 3.0 <= 14.0)
+        statusb = FLAG_PHYSICS_ENGINE | 0x2000000
+        playframes(EXHAUST_SMOKE, 3.0, time(3) << 8, 14.0)
     }
 }
 
@@ -585,14 +581,11 @@ state Smoke_Generic { // 5
         zindex = zdx
         SetVel(xvel, yvel, zvel)
         SetScale(scale + rand(0.1S), abs(scalex), 0)
-        statusb = 0x2000040
+        statusb = FLAG_PHYSICS_ENGINE | 0x2000000
 
         if (flags & 0x8) {
             setanim(EXHAUST_SMOKE)
-            animframe = ((time(3) % 3) << 8) - 3.0
-            do {
-                playframe(animframe + 3.0)
-            } while (animframe + 3.0 <= 14.0)
+            playframes(EXHAUST_SMOKE, 3.0, time(3) << 8, 14.0)
         }
         else if (flags & 0x20) {
             animframe = -1.0
@@ -658,7 +651,7 @@ state Exhaust_Particle { // 7
         scalex = 0x147 + rand(0x51)
         scaley = scalex
         scalez = 0S
-        statusb = 0x2000040
+        statusb = FLAG_PHYSICS_ENGINE | 0x2000000
         playanim(0, EXHAUST_PARTICLE, 0.4s)
     }
     trans {
@@ -886,7 +879,7 @@ state Elevator_Init { // 15
     statusc 0x200002
     event => state Elevator_Catch
     __transargs
-    code(const2, ev, obj, const1, flag, ax, ay, az) {
+    code(b, ev, obj, cam_msg, flag, ax, ay, az) {
         troty = 0deg
         if (flag >= 256.0) {
             if ((flag >> 8 & 0xFFFFFF00) == 1.0) {
@@ -956,10 +949,11 @@ state Elevator_Init { // 15
         }
     }
     trans {
-        if (collider && (statusa & 0x4000) && !(spawn == S_ELEVATOR_BONUS && BONUSSTATE == BONUS_COMPLETED)) {
-            sendevent(ev, player, obj, const1, flag & 0xFFFF, ax, ay, az, self)
+        if (collider && statusa & 0x4000 && !(spawn == S_ELEVATOR_BONUS && BONUSSTATE == BONUS_COMPLETED)) {
+            sendevent(ev, player, obj, cam_msg, flag & 0xFFFF, ax, ay, az, self)
             changestateif(Elevator_Move, eventaccepted, flag)
         }
+        roty = spd(roty, troty)
     }
 }
 
@@ -1026,7 +1020,7 @@ state Elevator_Catch { // 17
 state Elevator_Catch_Move { // 18
     statusc 0x200002
     code() {
-        statusb = FLAG_CARRY_COLLIDER | FLAG_SOLID_ALL | FLAG_COLLIDABLE
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
         if (spawn == S_SPAWN_50 || spawn == S_SPAWN_49) {
             setanim(ELEVATOR_3)
         }
@@ -1514,7 +1508,7 @@ state Space_Sky { // 33
         vfx = (vfx & 0xFF00FFFF) | 0x30000
         vfx = (vfx & 0xFFFFFF00) | 0x6
         statusb = FLAG_NO_CAMERA_CLIP | 0x2000000
-        zindex = -0x800
+        zindex = -2048
         SetRot(0deg)
         SetTrans(0, 0, 0)
         SetScale(2.8S, 2.8S, 1S)

@@ -17,10 +17,9 @@ event EventFling            => state Seal_Squash
 event EventSlideHit         => state Seal_Fling
 event EventSlamHit          => state Seal_Squash
 
-var ReflectionFlag, CycleLen, CycleOff, PathSpeed, SealTrackOffset, SealFrame, ChildSpawnMinDist, TargetZindex,
+var ReflectionFlag, CycleLen, CycleOffs, PathSpeed, SealTrackOffset, SealFrame, ChildSpawnMinDist, TargetZindex,
     TurnDuration, SealVar10, FlingCollateralDist, ZindexPathprogThresh, ZindexSeekSpeed
     
-
 inline sub SoundSealBark() {
     unless(rand(2)) {
         sounddelay(rand(1s) + 0.05s)
@@ -30,8 +29,8 @@ inline sub SoundSealBark() {
     }
 }
 
-inline sub WaitForSpawnCycle(cyclelen, cycleoff) {
-    while (time(cyclelen, cycleoff)) {
+inline sub WaitForSpawnCycle(cyclelen, cycleoffs) {
+    while (time(cyclelen, cycleoffs)) {
         playframe(0)
     }
 }
@@ -56,7 +55,7 @@ inline sub SetReflectionVFX(reflection) {
 
 state Seal_Path_Init { // 0
     statusc 0x32
-    code(count, pathspd, cyclelen, cycleoff, track_max, zindex_target, colldist, reflection, ppthresh, zindex_spd) {
+    code(count, pathspd, cyclelen, cycleoffs, track_max, zindex_target, colldist, reflection, ppthresh, zindex_spd) {
         PathSpeed = pathspd
         statusb = FLAG_INVISIBLE
         calcpath(pathlen - 1.0, vvec)
@@ -74,20 +73,20 @@ state Seal_Path_Init { // 0
         }
         do {
             do (var seals = 0) {
-                WaitForSpawnCycle(cyclelen, cycleoff)
+                WaitForSpawnCycle(cyclelen, cycleoffs)
                 if (distance(player, DIST_EXACT | DIST_NO_Y) > ChildSpawnMinDist && player -> z < vecz + 15m) {
                     spawn(SealC, S_SEAL_PATH_CHILD, 1)
                 }
                 playframe(0)
                 seals += 1.0
             } while (seals < count)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
         } while (1)
     }
@@ -101,7 +100,7 @@ state Seal_Path_Child { // 1
         pathprog = 0
         statusb = FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN | FLAG_COLLIDABLE | FLAG_SOLID_TOP | 0x800 | 0x2000
         CycleLen = 50
-        CycleOff = rand(50)
+        CycleOffs = rand(50)
         SealTrackOffset = 0
         density = 0.1m
         PathSpeed = parent -> PathSpeed
@@ -232,10 +231,10 @@ state Seal_Fling { // 5
 
 state Seal_Init { // 6
     statusc 0x12
-    code(track_max, cyclelen, cycleoff, turnspd, reflection) {
+    code(track_max, cyclelen, cycleoffs, turnspd, reflection) {
         pathdist = track_max
         CycleLen = cyclelen
-        CycleOff = cycleoff
+        CycleOffs = cycleoffs
         TurnDuration = turnspd
         density = 0.15m
         zindex = 25
@@ -257,33 +256,33 @@ state Seal { // 7
         SealScootCycle()
     }
     trans {
-        var TravelDuration = (CycleLen - (TurnDuration << 1)) >> 1
-        var CycleTime = time(CycleLen, CycleOff)
-        var PathSegTime = 0
-        var PathPoint = pathprog
-        if (TurnDuration > 0 && CycleTime >= 0 && CycleTime <= TurnDuration) {
-            PathSegTime = CycleTime
-            roty = troty - ((PathSegTime * 180deg) / TurnDuration)
+        var travel_time = (CycleLen - (TurnDuration << 1)) >> 1
+        var cycle_time = time(CycleLen, CycleOffs)
+        var phase_time = 0
+        var path_pos = pathprog
+        if (TurnDuration > 0 && cycle_time >= 0 && cycle_time <= TurnDuration) {
+            phase_time = cycle_time
+            roty = troty - ((phase_time * 180deg) / TurnDuration)
             statusb &= ~(FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN)
         }
-        else if (CycleTime >= TurnDuration && CycleTime <= TurnDuration + TravelDuration) {
-            PathSegTime = CycleTime - TurnDuration
-            PathPoint = (PathSegTime * (pathlen - 1.0)) / TravelDuration
+        else if (cycle_time >= TurnDuration && cycle_time <= TurnDuration + travel_time) {
+            phase_time = cycle_time - TurnDuration
+            path_pos = (phase_time * (pathlen - 1.0)) / travel_time
             statusb |= FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN
-            calcpath(PathPoint)
-            pathprog = PathPoint
+            calcpath(path_pos)
+            pathprog = path_pos
         }
-        else if (TurnDuration > 0 && CycleTime >= TurnDuration + TravelDuration && CycleTime <= (TurnDuration << 1) + TravelDuration) {
-            PathSegTime = CycleTime - (TurnDuration + TravelDuration)
-            roty = troty - ((PathSegTime * 180deg) / TurnDuration)
+        else if (TurnDuration > 0 && cycle_time >= TurnDuration + travel_time && cycle_time <= (TurnDuration << 1) + travel_time) {
+            phase_time = cycle_time - (TurnDuration + travel_time)
+            roty = troty - ((phase_time * 180deg) / TurnDuration)
             statusb &= ~(FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN)
         }
-        else if (CycleTime >= (TurnDuration << 1) + TravelDuration && CycleTime <= CycleLen) {
-            PathSegTime = CycleTime - ((TurnDuration << 1) + TravelDuration)
-            PathPoint = (pathlen - 1.0) + ((PathSegTime * -(pathlen - 1.0)) / (CycleLen - ((TurnDuration << 1) + TravelDuration)))
+        else if (cycle_time >= (TurnDuration << 1) + travel_time && cycle_time <= CycleLen) {
+            phase_time = cycle_time - ((TurnDuration << 1) + travel_time)
+            path_pos = (pathlen - 1.0) + ((phase_time * -(pathlen - 1.0)) / (CycleLen - ((TurnDuration << 1) + travel_time)))
             statusb |= FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN
-            calcpath(PathPoint)
-            pathprog = PathPoint
+            calcpath(path_pos)
+            pathprog = path_pos
             troty += 180deg
         }
         if (pathdist) {

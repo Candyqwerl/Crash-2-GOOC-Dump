@@ -18,33 +18,33 @@
 #spawn S_PILLAR_ARRAY_2   Pillar_Array_Spawner
 #spawn S_SIGN             Path_Sign
 
-var RuinsVar1, LeanerCycleoff, RuinsVar3, LastX, LastY, LastZ, RuinsVar7, PillarBaseY, RuinsVar9, RuinsVar10,
+var RuinsVar1, LeanerCycleOffs, RuinsVar3, LastX, LastY, LastZ, RuinsVar7, PillarBaseY, RuinsVar9, RuinsVar10,
     PillarTargetCount, PillarOrbitSpeed, PillarOrbitRadius, PillarRotSpeed, PillarBobSpeed, PillarBobAmplitude, PillarBobBaseY, 
     RuinsVar18, RuinsVar19, RuinsVar20, RuinsVar21, RuinsVar22, RuinsVar23, RuinsVar24, RuinsVar25, RuinsVar26, RuinsVar27, PillarYOff, PillarShake
 
-sub PlatformSelect(plat) {
-    if (plat == 0) {
+sub PlatformSelect(type) {
+    if (type == 0) {
         setanim(CRUMBLER_1)
     }
-    else if (plat == 1.0) {
+    else if (type == 1.0) {
         setanim(CRUMBLER_2)
     }
-    else if (plat == 2.0) {
+    else if (type == 2.0) {
         setanim(LEANER)
     }
-    else if (plat == 3.0) {
+    else if (type == 3.0) {
         setanim(SPINNER)
     }
     animframe = 0
 }
 
 state Crumbler_Init { // 0
-    code(plat, t) {
+    code(type, t) {
         RuinsVar1 = t * 1s / 1.2s
         zindex = 24
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
-        plat = id & 1.0 ? 0 : 1.0
-        PlatformSelect(plat)
+        type = id & 1.0 ? 0 : 1.0
+        PlatformSelect(type)
         changestate(Crumbler)
     }
 }
@@ -55,7 +55,7 @@ state Crumbler { // 1
     code() {
         sleep()
     }
-    trans { // MIPS
+    trans { 
         changestateif(Crumbler_Crumble, collider && statusa \ 0x4000)
     }
 }
@@ -70,11 +70,11 @@ state Crumbler_Crumble { // 2
         playframes(0.0, 52.0)
         wait(1.7s)
         wait(1.7s)
-        settrans(UpdateCrumblerModa)
+        settrans(BrightnessFadeIn)
         playframesback(52.0, 0.0)
         changestate(Crumbler)
     }
-    trans{ // MIPS
+    trans{ 
         if (frametime - statetime >= 1s) {
             moda = seek(moda, 16.0, 8.2s)
             if (moda == 0) {
@@ -84,7 +84,7 @@ state Crumbler_Crumble { // 2
     }
 }
 
-sub UpdateCrumblerModa(){ // MIPS
+sub BrightnessFadeIn(){ 
     moda = seek(moda, 0, 8.2s)
 }
 
@@ -99,11 +99,11 @@ inline sub PlatformVFX(){
 state Spinner { // 3
     statusc 0x200002
     __transargs
-    code(plat, cyclelen, cycleoff, radius) {
+    code(type, cyclelen, cycleoffs, radius) {
         zindex = 24
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_NO_CAMERA_CLIP
         rotx = radius
-        PlatformSelect(plat)
+        PlatformSelect(type)
         sleep()
     }
     event(e, a) {
@@ -118,13 +118,13 @@ state Spinner { // 3
     trans {
         once {
             cyclelen = cyclelen * 1s / 1.2s
-            cycleoff = cycleoff * 1s / 1.2s
-            PlatformSelect(plat)
+            cycleoffs = cycleoffs * 1s / 1.2s
+            PlatformSelect(type)
             RuinsVar3 = 0x100000 / cyclelen
             PlatformVFX()
             y += 1m
         }
-        roty = time(cyclelen, cycleoff) * RuinsVar3 >> 8
+        roty = time(cyclelen, cycleoffs) * RuinsVar3 >> 8
         rotz = roty
         troty = roty
         if (roty == 0deg) {
@@ -163,7 +163,7 @@ state Spinner { // 3
 state Leaner { // 4
     statusc 0x200002
     __transargs
-    code(plat, cyclelen, cycleoff, maxlean, yrot) {
+    code(type, cyclelen, cycleoffs, maxlean, yaw) {
         zindex = 24
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
         sleep()
@@ -171,18 +171,18 @@ state Leaner { // 4
     trans {
         once {
             cyclelen = cyclelen * 1s / 1.2s
-            cycleoff = cycleoff * 1s / 1.2s
-            roty = yrot
+            cycleoffs = cycleoffs * 1s / 1.2s
+            roty = yaw
             rotz = roty
             troty = roty
             RuinsVar1 = cyclelen >> 1
-            LeanerCycleoff = cycleoff
+            LeanerCycleOffs = cycleoffs
             RuinsVar3 = (maxlean << 1) / (RuinsVar1 + 1)
-            PlatformSelect(plat)
+            PlatformSelect(type)
             PlatformVFX()
             y += 1m
         }
-        rotx = time(RuinsVar1 << 1, LeanerCycleoff)
+        rotx = time(RuinsVar1 << 1, LeanerCycleOffs)
         if (rotx == 0deg || rotx == RuinsVar1) {
             soundpitch(2.0 - 1)
             soundsetup(0, self, 5)
@@ -199,12 +199,7 @@ state Leaner { // 4
             getvert(vvec, self, 0)
         }
         if (collider && statusa \ 0x4000) {
-            if (rotx > 0deg) {
-                sp = troty
-            }
-            else {
-                sendevent(Event57, collider, troty + 180deg)
-            }
+            sendevent(Event57, collider, rotx > 0deg ? troty : troty + 180deg)
             setvel(rotx << 4, vtrot)
             GroundCollider()
             collider -> x += ((vecx - LastX) + trotx)
@@ -231,23 +226,23 @@ state Pillar_Array_Spawner { // 5
         PillarRotSpeed = 0
         PillarBobAmplitude = 0
         PillarBobSpeed = 0
-        var PillarBobAmp = 0 - PillarBobAmplitude
-        var PillarBobInc = (PillarBobAmplitude / (PillarTargetCount >> 8)) << 1
-        var PillarOrbitAngle = 0
-        var PillarOrbitAngleInc = 360deg / (PillarTargetCount >> 8)
+        var bob_amp = 0 - PillarBobAmplitude
+        var bob_inc = (PillarBobAmplitude / (PillarTargetCount >> 8)) << 1
+        var angle = 0
+        var angle_inc = 360deg / (PillarTargetCount >> 8)
         var pillars = 0
         do {
             spawn(RPltC, S_PILLAR_ARRAY_1, 1,
-                PillarOrbitAngle,
+                angle,
                 PillarOrbitSpeed,
                 PillarOrbitRadius,
                 PillarRotSpeed,
                 PillarBobAmplitude,
                 PillarBobSpeed,
-                PillarBobAmp,
+                bob_amp,
                 rat)
-            PillarBobAmp += PillarBobInc
-            PillarOrbitAngle += PillarOrbitAngleInc
+            bob_amp += bob_inc
+            angle += angle_inc
             pillars += 1.0
         } while (pillars < PillarTargetCount)
         statusb = FLAG_INVISIBLE
@@ -291,73 +286,73 @@ state Pillar_Array { // 6
                     + sin(loopseek(PillarBobBaseY, PillarBobAmplitude,
                         spd(PillarBobSpeed)), PillarBobAmplitude - spd(PillarBobSpeed))
             }
-            var PillarTargetY = 0 // 9.77m
-            var PillarOrbitAngle = troty % 360deg
+            var target_y = 0m
+            var angle = troty % 360deg
             if (parent -> RuinsVar18) {
                 if (PillarOrbitSpeed < 0) {
-                    if (PillarOrbitAngle >= parent -> RuinsVar19) {
-                        if (PillarOrbitAngle <= parent -> RuinsVar20) {
-                            PillarTargetY = seek(PillarYOff, -30m, 1m)
+                    if (angle >= parent -> RuinsVar19) {
+                        if (angle <= parent -> RuinsVar20) {
+                            target_y = seek(PillarYOff, -30m, 1m)
                         }
-                        else if (PillarOrbitAngle <= parent -> RuinsVar22) {
+                        else if (angle <= parent -> RuinsVar22) {
                             if (PillarShake) {
-                                PillarTargetY = randi(-0.15m, 0.15m)
+                                target_y = randi(-0.15m, 0.15m)
                             }
                             else {
-                                PillarTargetY = PillarYOff
+                                target_y = PillarYOff
                             }
                         }
                     }
                 }
-                else if (PillarOrbitAngle <= parent -> RuinsVar20) {
-                    if (PillarOrbitAngle >= parent -> RuinsVar19) {
-                        PillarTargetY = seek(PillarYOff, -30m, 1m)
+                else if (angle <= parent -> RuinsVar20) {
+                    if (angle >= parent -> RuinsVar19) {
+                        target_y = seek(PillarYOff, -30m, 1m)
                     }
-                    else if (PillarOrbitAngle >= parent -> RuinsVar21) {
+                    else if (angle >= parent -> RuinsVar21) {
                         if (PillarShake) {
-                            PillarTargetY = randi(-0.15m, 0.15m)
+                            target_y = randi(-0.15m, 0.15m)
                         }
                         else {
-                            PillarTargetY = PillarYOff
+                            target_y = PillarYOff
                         }
                     }
                 }
             }
             if (parent -> RuinsVar23) {
                 if (PillarOrbitSpeed < 0) {
-                    if (PillarOrbitAngle >= parent -> RuinsVar24) {
-                        if (PillarOrbitAngle <= parent -> RuinsVar25) {
-                            PillarTargetY = seek(PillarYOff, -30m, 1m)
+                    if (angle >= parent -> RuinsVar24) {
+                        if (angle <= parent -> RuinsVar25) {
+                            target_y = seek(PillarYOff, -30m, 1m)
                         }
-                        else if (PillarOrbitAngle <= parent -> RuinsVar27) {
+                        else if (angle <= parent -> RuinsVar27) {
                             if (PillarShake) {
-                                PillarTargetY = randi(-0.15m, 0.15m)
+                                target_y = randi(-0.15m, 0.15m)
                             }
                             else {
-                                PillarTargetY = PillarYOff
+                                target_y = PillarYOff
                             }
                         }
                     }
                 }
-                else if (PillarOrbitAngle <= parent -> RuinsVar25) {
-                    if (PillarOrbitAngle >= parent -> RuinsVar24) {
-                        PillarTargetY = seek(PillarYOff, -30m, 1m)
+                else if (angle <= parent -> RuinsVar25) {
+                    if (angle >= parent -> RuinsVar24) {
+                        target_y = seek(PillarYOff, -30m, 1m)
                     }
-                    else if (PillarOrbitAngle >= parent -> RuinsVar26) {
+                    else if (angle >= parent -> RuinsVar26) {
                         if (PillarShake) {
-                            PillarTargetY = randi(-0.15m, 0.15m)
+                            target_y = randi(-0.15m, 0.15m)
                         }
                         else {
-                            PillarTargetY = PillarYOff
+                            target_y = PillarYOff
                         }
                     }
                 }
             }
-            if (PillarTargetY == 7.7m) {
+            if (target_y == 7.7m) {
                 PillarYOff = seek(PillarYOff, 0, 1m)
             }
             else {
-                PillarYOff = PillarTargetY
+                PillarYOff = target_y
             }
             y += PillarYOff
             PillarShake = 1 - PillarShake

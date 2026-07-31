@@ -18,8 +18,8 @@
 #spawn S_ICE_SLIDE            Ice_Slide_Init
 #spawn S_ROLLER_REFLECTION    Roller_Reflection
 
-var TriggerDistance, SmasherCycleLen, SmasherCycleOff, SmashDelay,
-    RollerStartDist, RollerYoff, RollerSpeed, RollerStopDist, RollerLastX, EntityID
+var TriggerDistance, SmasherCycleLen, SmasherCycleOffs, SmashDelay,
+    RollerStartDist, RollerYOffs, RollerSpeed, RollerStopDist, RollerLastX, EntityID
 
 state Smasher_Init { // 0
     code(dist, delay) {
@@ -88,9 +88,9 @@ state Smasher_Retract { // 4
 }
 
 state Smasher_Const_Init { // 5
-    code(cyclelen, cycleoff, dist) {
+    code(cyclelen, cycleoffs, dist) {
         SmasherCycleLen = cyclelen * 1s / 1.2s
-        SmasherCycleOff = cycleoff * 1s / 1.2s
+        SmasherCycleOffs = cycleoffs * 1s / 1.2s
         TriggerDistance = dist
         zindex = 24
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_SIDES
@@ -104,7 +104,7 @@ state Smasher_Const { // 6
         sleepframe(20.0)
     }
     trans {
-        changestateifn(Smasher_Const_Smash, time(SmasherCycleLen, SmasherCycleOff) || !(!(player -> stateflag & 0x20) && !player -> invincible))
+        changestateifn(Smasher_Const_Smash, time(SmasherCycleLen, SmasherCycleOffs) || !(!(player -> stateflag & 0x20) && !player -> invincible))
     }
 }
 
@@ -131,10 +131,10 @@ state Smasher_Const_Smash { // 7
 }
 
 state Roller_Init { // 8
-    code(cycleoff, startdist, speed, reflection) {
+    code(cycleoffs, startdist, speed, reflection) {
         RollerSpeed = 0.25s * speed
         RollerStartDist = startdist
-        pathprog = (cycleoff - 128.0) * pathlen >> 15
+        pathprog = (cycleoffs - 128.0) * pathlen >> 15
         if (pathprog >= pathlen) {
             pathprog = pathlen - 1
         }
@@ -145,7 +145,7 @@ state Roller_Init { // 8
         rotz = 90deg
         zindex = -5
         density = 0.2m
-        RollerYoff = 0.2m
+        RollerYOffs = 0.2m
         RollerStopDist = z - 2m
         statusb = FLAG_TRACK_PATH_ROT | FLAG_COLLIDABLE | FLAG_SOLID_SIDES
         statusa |= FLAG_PATH_END
@@ -173,7 +173,7 @@ state Roller { // 9
                 statusb &= ~FLAG_INVISIBLE
                 LoopPathProg(spd(5.4))
                 rotx = rotx - (360deg * (RollerLastX - x)) / RollerSpeed
-                y += RollerYoff
+                y += RollerYOffs
             }
             else if (player -> z >= RollerStopDist + RollerStartDist) {
                 statusb |= FLAG_INVISIBLE
@@ -274,14 +274,14 @@ sub IcicleFalling(){
 
 state Ice_Slide_Init { // 14
     stateflag 0x80000201
-    code(xrot, scax, scay, scaz) {
+    code(pitch, scax, scay, scaz) {
         scalex = scax >> 2
         scaley = scay >> 2
         scalez = scaz >> 2
         scalex = scalex * 1.1 >> 8
         statusb = FLAG_COLLIDABLE | FLAG_INVISIBLE | FLAG_2D | FLAG_SOLID_TOP
         rotz = 90deg
-        rotx = xrot
+        rotx = pitch
         changestate(Ice_Slide)
     }
 }

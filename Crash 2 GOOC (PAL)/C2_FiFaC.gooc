@@ -7,39 +7,39 @@
 #spawn S_FIRE_FACE   Fire_Face
 #spawn S_WATCHER     Fire_Face_Watcher
 
-var SwingInc
+var SwingRate
 
 state Fire_Face {
     __transargs
-    code(SwingStartYaw, SwingArc, SwingCycleLen, SwingCycleOff, FireCycleLen, FireCycleOff, FireDuration, RangeBehind, RangeRight, RangeAhead, RangeLeft) {
-        roty = SwingStartYaw
-        rotz = SwingStartYaw
-        SwingStartYaw -= SwingArc
-        SwingArc <<= 1
-        SwingCycleLen = SwingCycleLen * 1s / 1.2s
-        SwingCycleOff = SwingCycleOff * 1s / 1.2s
-        FireCycleLen = FireCycleLen * 1s / 1.2s
-        FireCycleOff = FireCycleOff * 1s / 1.2s
-        FireDuration = FireDuration * 1s / 1.2s
-        if (SwingArc) {
-            SwingInc = SwingArc * 45deg / SwingCycleLen
+    code(yaw, arc, cyclelen, cycleoffs, firelen, fireoffs, firedur, range_back, range_right, range_front, range_left) {
+        roty = yaw
+        rotz = yaw
+        yaw -= arc
+        arc <<= 1
+        cyclelen = cyclelen * 1s / 1.2s
+        cycleoffs = cycleoffs * 1s / 1.2s
+        firelen = firelen * 1s / 1.2s
+        fireoffs = fireoffs * 1s / 1.2s
+        firedur = firedur * 1s / 1.2s
+        if (arc) {
+            SwingRate = arc * 45deg / cyclelen
         }
         zindex = 40
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_SIDES
         sleepanim(0, FIRE_FACE)
     }
-    trans { // MIPS
+    trans {
         unless(STATUS_FIRSTFRAME) {
-            if (SwingArc) {
-                field_61 = (time(SwingCycleLen, SwingCycleOff) * SwingInc) >> 8
-                if (field_61 >= SwingArc) {
-                    if (field_61 == SwingArc) {
+            if (arc) {
+                field_61 = (time(cyclelen, cycleoffs) * SwingRate) >> 8
+                if (field_61 >= arc) {
+                    if (field_61 == arc) {
                         soundpitch(2.0)
                         sounddecay(6.4s)
                         soundplay([FFarA], 1V)
                         soundsetup(0, voice, 5)
                     }
-                    roty = (SwingStartYaw + SwingArc) - sin(field_61 - SwingArc, SwingArc)
+                    roty = (yaw + arc) - sin(field_61 - arc, arc)
                 }
                 else {
                     if (!field_61) {
@@ -48,20 +48,20 @@ state Fire_Face {
                         soundplay([FFarA], 1V)
                         soundsetup(0, voice, 5)
                     }
-                    roty = SwingStartYaw + sin(field_61, SwingArc)
+                    roty = yaw + sin(field_61, arc)
                 }
             }
             else {
                 field_61 = 0
-                roty = SwingStartYaw
+                roty = yaw
             }
-            if (z - player -> z <= RangeBehind && player -> x - x <= RangeRight && player -> z - z <= RangeAhead && x - player -> x <= RangeLeft) {
-                if (FireCycleOff < 0) {
-                    FireCycleOff = (FireCycleLen - 1) - time(FireCycleLen)
+            if (z - player -> z <= range_back && player -> x - x <= range_right && player -> z - z <= range_front && x - player -> x <= range_left) {
+                if (fireoffs < 0) {
+                    fireoffs = (firelen - 1) - time(firelen)
                 }
-                var FlameCycleTime = time(FireCycleLen, FireCycleOff)
-                if (FlameCycleTime < FireDuration) {
-                    if (!FlameCycleTime) {
+                var firetime = time(firelen, fireoffs)
+                if (firetime < firedur) {
+                    if (!firetime) {
                         soundpitch(3.625)
                         sounddecay(6.4s)
                         soundplay([FThrA], 2V)

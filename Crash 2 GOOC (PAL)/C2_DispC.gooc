@@ -195,7 +195,7 @@
 #spawn S_6                        __s_6                           // S6
 #spawn S_7                        __s_7                           // S7
 #spawn S_DEMO_TEXT                Demo_Text                       // S8
-#spawn S_9                        __s_9                           // S9
+#spawn S_9                        __s_9                           // s9
 #spawn S_VARIABLE_DISPLAY         Variable_Display                // S1
 #spawn S_COLLECTABLE_DISPLAY      HUD_Collectable_Display         // S11
 #spawn S_12                       __s_12                          // S12
@@ -214,8 +214,6 @@
 #spawn S_TIMETRIAL                River_TimeTrial                 // S25
 #spawn S_26                       __s_26                          // S26
 
-expr SMALL_FONT = 0x5500
-expr BIG_FONT = 0x19C00
 expr DISPLAY_BOUND_Y = 190.0
 expr DISPLAY_BOUND_LOWER_Y = 102.0
 
@@ -455,11 +453,11 @@ state Variable_Display { // 6
     code(displaymode, base_x, y_off, x_off) {
         playnull()
         if (displaymode == 0x10) {
-            invincible = SMALL_FONT
+            invincible = FONT_SMALL
             TextScaleDefault()
         }
         else {
-            invincible = BIG_FONT
+            invincible = FONT_BIG
             SetScale(0x146, 0x207, 16.0)
         }
         velx = base_x + x_off
@@ -685,7 +683,7 @@ state Bonus_Text { // 13
     code(x_pos, y_pos) {
         SetTrans(x_pos, y_pos, 0)
         SetScale(0x146, 0x207, 0x1000)
-        invincible = BIG_FONT
+        invincible = FONT_BIG
         SetColor1(0x000, 0x1F4, 0x000)
         SetColor2(0x000, 0x1F4, 0x000)
         SetColor3(0x000, 0x190, 0x096)
@@ -1255,13 +1253,13 @@ state Pause_Menu_Calibrate { // 17
         x -= 88.0
         y += 37.0
         {
-            var JoyMinX = 1.0
-            var JoyMinY = 1.0
-            var JoyMaxX = -1
-            var JoyMaxY = -1
-            var JoyCenterX = 0x80
-            var JoyCenterY = 0x80
-            var S9 = 0
+            var joy_min_x = 1.0
+            var joy_min_y = 1.0
+            var joy_max_x = -1
+            var joy_max_y = -1
+            var joy_center_x = 0x80
+            var joy_center_y = 0x80
+            var s9 = 0
             do {
                 if (var lang = GLOBAL_151; lang == LANG_DE) {
                     setanim(TEXT)
@@ -1313,11 +1311,11 @@ state Pause_Menu_Calibrate { // 17
                 statusb = FLAG_NO_CAMERA_CLIP | FLAG_STRING_CENTER
                 changestate(Pause_Menu_Root)
             } until(buttonpress(PAD_X))
-            if (miscfunc(JoyCenterX, player, 20, 12) >= 0x53) nop();
-            while (S9 < 4.0) {
+            if (miscfunc(joy_center_x, player, 20, 12) >= 0x53) nop();
+            while (s9 < 4.0) {
                 playnull()
                 do {
-                    if (!S9) {
+                    if (!s9) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(112.0)
@@ -1339,7 +1337,7 @@ state Pause_Menu_Calibrate { // 17
                             playframe(116.0)
                         }
                     }
-                    else if (S9 == LANG_ES) {
+                    else if (s9 == LANG_ES) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(117.0)
@@ -1361,7 +1359,7 @@ state Pause_Menu_Calibrate { // 17
                             playframe(121.0)
                         }
                     }
-                    else if (S9 == 2.0) {
+                    else if (s9 == 2.0) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(122.0)
@@ -1407,20 +1405,20 @@ state Pause_Menu_Calibrate { // 17
                     }
                 } until(buttonpress(PAD_X))
                 if (miscfunc(vecx, player, 20, 12) >= 0x53) nop();
-                if (vecx < JoyMinX) JoyMinX = vecx;
-                if (vecy < JoyMinY) JoyMinY = vecy;
-                if (vecx > JoyMaxX) JoyMaxX = vecx;
-                if (vecy > JoyMaxY) JoyMaxY = vecy;
-                S9 += 1.0
+                if (vecx < joy_min_x) joy_min_x = vecx;
+                if (vecy < joy_min_y) joy_min_y = vecy;
+                if (vecx > joy_max_x) joy_max_x = vecx;
+                if (vecy > joy_max_y) joy_max_y = vecy;
+                s9 += 1.0
             }
             y = troty
-            if (JoyMaxX - JoyCenterX > 64 && JoyCenterX - JoyMinX > 64 && JoyMaxY - JoyCenterY > 64 && JoyCenterY - JoyMinY > 64) {
-                GLOBAL_152 = JoyCenterX
-                GLOBAL_153 = JoyCenterY
-                GLOBAL_154 = JoyMinX
-                GLOBAL_155 = JoyMinY
-                GLOBAL_156 = JoyMaxX
-                GLOBAL_157 = JoyMaxY
+            if (joy_max_x - joy_center_x > 64 && joy_center_x - joy_min_x > 64 && joy_max_y - joy_center_y > 64 && joy_center_y - joy_min_y > 64) {
+                GLOBAL_152 = joy_center_x
+                GLOBAL_153 = joy_center_y
+                GLOBAL_154 = joy_min_x
+                GLOBAL_155 = joy_min_y
+                GLOBAL_156 = joy_max_x
+                GLOBAL_157 = joy_max_y
                 if (var lang = GLOBAL_151; lang == LANG_DE) {
                     setanim(TEXT)
                     playframe(132.0, 1.7s)
@@ -1837,7 +1835,7 @@ state Box_Counter { // 28
         statusb = FLAG_STRING_CENTER
         TextColorDefault()
         SetScale(8.0)
-        invincible = BIG_FONT
+        invincible = FONT_BIG
         if (var v1 = SAVEDGEMPOOL1 | GEMPOOL1, v2 = SAVEDGEMPOOL2 | GEMPOOL2; LEVEL == LEVEL_TurtleWoods) {
             unless (0x20000000 & v2) {
                 if (BOXCOUNT == 0) {
@@ -1921,7 +1919,7 @@ state River_TimeTrial { // 30
     code() { 
         vfx = (vfx & 0xFFFFFF00) | 0x6
         SetScale(0x146, 0x207, 0x1000)
-        invincible = BIG_FONT
+        invincible = FONT_BIG
         TextColorDefault()
         zindex = 0x64
         {
@@ -1982,14 +1980,14 @@ state River_TimeTrial { // 30
 state Menu_Button { // 31
     stateflag 0x120001
     __transargs
-    code(button_index, anim, frame, x_off, y_off, obj) {
+    code(index, anim, frame, x_off, y_off, obj) {
         statusb = creator -> statusb
         zindex = creator -> zindex
         unless(creator -> stateflag & 0x100000) {
             stateflag &= ~0x100000
         }
         vfx = (vfx & 0xFFFFFF00) | 0x6
-        invincible = SMALL_FONT
+        invincible = FONT_SMALL
         animseq = anim
         animframe = frame
         var v1 = v0
@@ -2008,7 +2006,7 @@ state Menu_Button { // 31
             return
         }
         y = parent -> y + y_off
-        if (parent -> stalltime == button_index) {
+        if (parent -> stalltime == index) {
             if (obj) {
                 interrupter = obj
                 interrupter -> y = y
@@ -2016,7 +2014,7 @@ state Menu_Button { // 31
             TextFlashFast()
         }
         else {
-            if (button_index < 0) {
+            if (index < 0) {
                 TextFlashSlow()
             }
             else {
@@ -2053,10 +2051,10 @@ state Menu_Text { // 32
             y = y_off
         }
         if (flags & 4) {
-            invincible = BIG_FONT
+            invincible = FONT_BIG
         }
         else {
-            invincible = SMALL_FONT
+            invincible = FONT_SMALL
         }
         zindex = creator -> zindex
         if (flags & 2) {
@@ -2251,4 +2249,5 @@ state Box_Hologram { // 36
 sub TextColorDefault() {
     SetTextColor(0x1FF, 0x190, 0, 0x1FF, 0, 0)
 }
+
 

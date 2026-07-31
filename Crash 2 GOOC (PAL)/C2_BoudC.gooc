@@ -386,18 +386,18 @@ state Chaser_Chase { // 2
             }
         }
         {
-            var ElapsedChaseTime = 0
-            var PlayerDistance = 0
-            var S5 = 0
-            var RubberbandTarget = 0
-            PlayerDistance = player -> z - z
-            if (PlayerDistance < 0) {
-                PlayerDistance = 0
+            var elapsed = 0
+            var player_dist = 0
+            var s5 = 0
+            var rubberband_target = 0
+            player_dist = player -> z - z
+            if (player_dist < 0) {
+                player_dist = 0
             }
-            S5 = ChaserPathlen - pathprog
+            s5 = ChaserPathlen - pathprog
             var0 = ChaserPathlen >> 1
-            if (S5 <= var0) {
-                var0 = (S5 - var0) * PathEndDecel / var0
+            if (s5 <= var0) {
+                var0 = (s5 - var0) * PathEndDecel / var0
             }
             else {
                 var0 = 0
@@ -406,32 +406,32 @@ state Chaser_Chase { // 2
             if (var0 < 0) {
                 var0 = 0
             }
-            S5 = PlayerDistance - var0
-            if (S5 >= 0) {
-                if (S5 > RubberbandRange) {
-                    S5 = RubberbandRange
+            s5 = player_dist - var0
+            if (s5 >= 0) {
+                if (s5 > RubberbandRange) {
+                    s5 = RubberbandRange
                 }
-                RubberbandTarget = (S5 >> 8 << 12) / (RubberbandRange >> 8)
+                rubberband_target = (s5 >> 8 << 12) / (RubberbandRange >> 8)
             }
             else {
-                RubberbandTarget = -((S5 >> 8) * -16.0 / (var0 >> 8))
+                rubberband_target = -((s5 >> 8) * -16.0 / (var0 >> 8))
             }
-            Rubberband = seek(Rubberband, RubberbandTarget, 0.78s)
+            Rubberband = seek(Rubberband, rubberband_target, 0.78s)
             if (Rubberband >= 0) {
-                S5 = Rubberband * BoulderAccel >> 12
+                s5 = Rubberband * BoulderAccel >> 12
             }
             else {
-                S5 = Rubberband * BoulderDecel >> 12
+                s5 = Rubberband * BoulderDecel >> 12
             }
-            ElapsedChaseTime = frametime - ChaseStartFrame
-            ElapsedChaseTime += S5
-            if (ElapsedChaseTime < 0s) {
-                ElapsedChaseTime = 0s
+            elapsed = frametime - ChaseStartFrame
+            elapsed += s5
+            if (elapsed < 0s) {
+                elapsed = 0s
             }
-            if (ElapsedChaseTime > 120s) {
-                ElapsedChaseTime = 120s
+            if (elapsed > 120s) {
+                elapsed = 120s
             }
-            var0 = (ElapsedChaseTime << 8) / 1s
+            var0 = (elapsed << 8) / 1s
             pathprog = var0 * PathSpeed >> 8
             pathprog = pathprog + ChaserPathprog >> 1
             if (pathprog >= ChaserPathlen) {

@@ -293,15 +293,15 @@ state Penguin_Spin_Const { // 5
     }
 }
 
-inline sub WaitForSpawnCycle(cyclelen, cycleoff) {
-    while (time(cyclelen, cycleoff)) {
+inline sub WaitForSpawnCycle(cyclelen, cycleoffs) {
+    while (time(cyclelen, cycleoffs)) {
         playframe(0)
     }
 }
 
 state Penguin_Slide_Spawner { // 6
     statusc 0x32
-    code(count, pathspd, cyclelen, cycleoff, max_trackoffs) {
+    code(count, pathspd, cyclelen, cycleoffs, max_trackoffs) {
         PenguinPathSpeed = pathspd
         statusb = FLAG_INVISIBLE
         calcpath(pathlen - 1.0, vvec)
@@ -309,20 +309,20 @@ state Penguin_Slide_Spawner { // 6
         pathdist = max_trackoffs
         do {
             do (var penguins = 0) {
-                WaitForSpawnCycle(cyclelen, cycleoff)
+                WaitForSpawnCycle(cyclelen, cycleoffs)
                 if (distance(player, DIST_EXACT | DIST_NO_Y) > ChildSpawnMinDist && player -> z < vecz + 15m) {
                     spawn(PengC, S_PENGUIN_CHILD, 1)
                 }
                 playframe(0)
                 penguins += 1.0
             } while (penguins < count)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
-            WaitForSpawnCycle(cyclelen, cycleoff)
+            WaitForSpawnCycle(cyclelen, cycleoffs)
             playframe(0)
         } while (1)
     }

@@ -960,8 +960,8 @@ state Cutscene_End { // 8
 state Cutscene_Init { // 9
     code() {
         FloorIndex = (player -> y + 40m) / 100m
-        if (FloorIndex < 0m) {
-            FloorIndex = 0m
+        if (FloorIndex < 0) {
+            FloorIndex = 0
         }
         if (FloorIndex >= 6) {
             FloorIndex = 5

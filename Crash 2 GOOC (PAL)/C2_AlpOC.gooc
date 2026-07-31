@@ -458,18 +458,18 @@ inline sub TimedSparkAnim() {
 state Timed_Spark { // 16
     statusc 0
     __transargs
-    code(cyclelen, cycleoff, spark_delay) {
+    code(cyclelen, cycleoffs, spark_delay) {
         zindex = 25
         sleep()
     }
     trans {
         once {
             cyclelen = cyclelen * 1s / 1.2s
-            cycleoff = cycleoff * 1s / 1.2s
+            cycleoffs = cycleoffs * 1s / 1.2s
             spark_delay = spark_delay * 1s / 1.2s
             voice = 0
         }
-        if (var cycletime = time(cyclelen, cycleoff), segtime = 0; cycletime >= 0 && cycletime <= spark_delay) {
+        if (var cycletime = time(cyclelen, cycleoffs), segtime = 0; cycletime >= 0 && cycletime <= spark_delay) {
             segtime = cycletime
             if (voice) {
                 soundfadet(0.1s, voice)

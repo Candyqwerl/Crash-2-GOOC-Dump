@@ -17,15 +17,15 @@ event EventHit           => state Mech_Squash
 event EventHitInvincible => state Mech_Squash
 event EventFling         => state Mech_Fling
 
-var MechVar1, CycleOff, CycleLen, TurnDuration, MechVar5, MechTrackOffset, TravelDuration
+var MechVar1, CycleOffs, CycleLen, TurnDuration, MechVar5, MechTrackOffset, TravelDuration
 
 state Mech_Init {
     statusc 0x12
-    code(max_trackoffs, cyclelen, cycleoff, turnlen) {
+    code(max_trackoffs, cyclelen, cycleoffs, turntime) {
         pathdist = max_trackoffs
         CycleLen = cyclelen * 1s / 1.2s
-        CycleOff = cycleoff * 1s / 1.2s
-        TurnDuration = turnlen
+        CycleOffs = cycleoffs * 1s / 1.2s
+        TurnDuration = turntime
         MechTrackOffset = 0
         density = 0.15m
         zindex = 25
@@ -71,20 +71,20 @@ state Mech_Bob {
     event => state Mech_Path_Track
     trans {
         SpawnTrailSmoke()
-        var HalfCycleLen = CycleLen >> 1
-        var cycletime = time(CycleLen, CycleOff)
-        var PathSegTime = 0
-        if (HalfCycleLen > 0 && cycletime >= 0 && cycletime <= HalfCycleLen) {
-            PathSegTime = cycletime
-            var PathPoint = (PathSegTime * (pathlen - 1.0)) / HalfCycleLen
-            calcpath(PathPoint)
-            pathprog = PathPoint
+        var half_cycle = CycleLen >> 1
+        var cycletime = time(CycleLen, CycleOffs)
+        var phase_time = 0
+        if (half_cycle > 0 && cycletime >= 0 && cycletime <= half_cycle) {
+            phase_time = cycletime
+            var path_pos = (phase_time * (pathlen - 1.0)) / half_cycle
+            calcpath(path_pos)
+            pathprog = path_pos
         }
-        else if (CycleLen - HalfCycleLen > 0 && cycletime >= HalfCycleLen && cycletime <= CycleLen) {
-            PathSegTime = cycletime - HalfCycleLen
-            var PathPoint = (pathlen - 1.0) + ((PathSegTime * -(pathlen - 1.0)) / (CycleLen - HalfCycleLen))
-            calcpath(PathPoint)
-            pathprog = PathPoint
+        else if (CycleLen - half_cycle > 0 && cycletime >= half_cycle && cycletime <= CycleLen) {
+            phase_time = cycletime - half_cycle
+            var path_pos = (pathlen - 1.0) + ((phase_time * -(pathlen - 1.0)) / (CycleLen - half_cycle))
+            calcpath(path_pos)
+            pathprog = path_pos
         }
         troty = atan2(player -> trans)
         sendevent(EventHit, collider, 100.0)
@@ -125,31 +125,31 @@ state Mech_Path_Track {
         if (spawn != S_MECH_OLD) {
             SpawnTrailSmoke()
         }
-        var CycleTime = time(CycleLen, CycleOff)
-        var PathSegTime = 0
-        var PathPoint = 0
-        if (TurnDuration > 0 && CycleTime >= 0 && CycleTime <= TurnDuration) {
-            PathSegTime = CycleTime
-            roty = troty - ((CycleTime * 180deg) / TurnDuration)
+        var cycletime = time(CycleLen, CycleOffs)
+        var phase_time = 0
+        var path_pos = 0
+        if (TurnDuration > 0 && cycletime >= 0 && cycletime <= TurnDuration) {
+            phase_time = cycletime
+            roty = troty - ((cycletime * 180deg) / TurnDuration)
             statusb &= ~(FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN)
         }
-        else if (CycleTime >= TurnDuration && CycleTime <= TurnDuration + TravelDuration) {
-            PathSegTime = CycleTime - TurnDuration
-            PathPoint = (PathSegTime * (pathlen - 1.0)) / TravelDuration
+        else if (cycletime >= TurnDuration && cycletime <= TurnDuration + TravelDuration) {
+            phase_time = cycletime - TurnDuration
+            path_pos = (phase_time * (pathlen - 1.0)) / TravelDuration
             statusb |= FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN
-            calcpath(PathPoint)
+            calcpath(path_pos)
         }
-        else if (TurnDuration > 0 && CycleTime >= TurnDuration + TravelDuration && CycleTime <= (TurnDuration << 1) + TravelDuration) {
-            PathSegTime = CycleTime - (TurnDuration + TravelDuration)
-            roty = troty - ((PathSegTime * 180deg) / TurnDuration)
+        else if (TurnDuration > 0 && cycletime >= TurnDuration + TravelDuration && cycletime <= (TurnDuration << 1) + TravelDuration) {
+            phase_time = cycletime - (TurnDuration + TravelDuration)
+            roty = troty - ((phase_time * 180deg) / TurnDuration)
             statusb &= ~(FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN)
         }
-        else if (CycleTime >= (TurnDuration << 1) + TravelDuration && CycleTime <= CycleLen) {
-            PathSegTime = CycleTime - ((TurnDuration << 1) + TravelDuration)
-            var ReturnDuration = CycleLen - ((TurnDuration << 1) + TravelDuration)
-            PathPoint = (pathlen - 1.0) + ((PathSegTime * -(pathlen - 1.0)) / ReturnDuration)
+        else if (cycletime >= (TurnDuration << 1) + TravelDuration && cycletime <= CycleLen) {
+            phase_time = cycletime - ((TurnDuration << 1) + TravelDuration)
+            var return_time = CycleLen - ((TurnDuration << 1) + TravelDuration)
+            path_pos = (pathlen - 1.0) + ((phase_time * -(pathlen - 1.0)) / return_time)
             statusb |= FLAG_ROT_Y | FLAG_TRACK_PATH_SIGN
-            calcpath(PathPoint)
+            calcpath(path_pos)
             troty += 180deg
         }
 
@@ -203,7 +203,7 @@ state Mech_Path_Old {
             TurnDuration = (pathlen << 1) / (CycleLen + 1)
         }
         if (spawn == S_MECH_BOB) {
-            var cycletime = time(CycleLen, CycleOff)
+            var cycletime = time(CycleLen, CycleOffs)
             pathprog = abs((cycletime - (CycleLen >> 1)) * TurnDuration)
             calcpath(pathprog)
             if (cycletime >= CycleLen >> 1) {
@@ -212,7 +212,7 @@ state Mech_Path_Old {
             troty = atan2(player -> trans)
         }
         else {
-            calcpath(time(CycleLen, CycleOff) * (pathlen / CycleLen))
+            calcpath(time(CycleLen, CycleOffs) * (pathlen / CycleLen))
         }
         SpawnTrailSmoke()
         sendevent(EventHit, collider, 100.0)

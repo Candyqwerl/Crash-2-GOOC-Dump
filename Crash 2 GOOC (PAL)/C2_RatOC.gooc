@@ -51,7 +51,7 @@ event EventFling         => state Rat_Fling
 event EventSlideHit      => state Rat_Fling
 event EventSlamHit       => state Rat_Squash
 
-var RatCycleLen, RatCycleOff, RatOrbitRadius, RatPathSpeed, RatTrackOffset, RatTunnelPitch, RatPathStartX, TunnelCenterY,
+var RatCycleLen, RatCycleOffs, RatOrbitRadius, RatPathSpeed, RatTrackOffset, RatTunnelPitch, RatPathStartX, TunnelCenterY,
     RatPathStartZ, RatPathEndX, RatPathEndZ, EntityID, EntityCount, RatTunnelYaw, RatVar15, RatHasPath
 
 expr PlayerPathStartDot = (((player -> x - RatPathStartX) >> 8) * ((RatPathEndX - RatPathStartX) >> 8)) + (((player -> z - RatPathStartZ) >> 8) * ((RatPathEndZ - RatPathStartZ) >> 8))
@@ -417,9 +417,9 @@ sub RatPathTrack() {
 }
 
 state Rat_Orbit {
-    code(yaw, cyclelen, cycleoff, pathspd, radius, count) {
+    code(yaw, cyclelen, cycleoffs, pathspd, radius, count) {
         RatCycleLen = cyclelen * 1s / 1.2s
-        RatCycleOff = cycleoff * 1s / 1.2s
+        RatCycleOffs = cycleoffs * 1s / 1.2s
         RatOrbitRadius = radius
         RatPathSpeed = pathspd
         if (spawn == S_RAT_CIRCLE_CHILD) {
@@ -438,7 +438,7 @@ state Rat_Orbit {
             var offs = cyclelen / (count >> 8)
             var rats = 0
             do {
-                spawn2(RatOC, S_RAT_CIRCLE_CHILD, 1, yaw, cyclelen, cycleoff + offs * (rats >> 8), pathspd, radius, 0)
+                spawn2(RatOC, S_RAT_CIRCLE_CHILD, 1, yaw, cyclelen, cycleoffs + offs * (rats >> 8), pathspd, radius, 0)
                 rats += 1.0
             } while (rats < count)
             statusb = 0
@@ -471,7 +471,7 @@ state Rat_Circle {
         if (pathlen > 1.0) {
             calcpath(loopseek(pathprog, pathlen + spd(RatPathSpeed) - 1.0, spd(RatPathSpeed)), vvec)
         }
-        troty = -((time(RatCycleLen, RatCycleOff) << 12) / RatCycleLen)
+        troty = -((time(RatCycleLen, RatCycleOffs) << 12) / RatCycleLen)
         vectransf2(vvec, vtrans, RatOrbitRadius, 0, 0)
         roty = troty - 90deg
         sendeventif(EventHit, collider, STATUS_PLAYER_D_COLLIDER && player -> statusa \ FLAG_GROUNDLAND, 100.0)
@@ -482,7 +482,7 @@ state Rat_Tunnel_Ring {
     statusc 0x0
     code => state Rat_Active
     trans {
-        var cycletime = time(RatCycleLen, RatCycleOff)
+        var cycletime = time(RatCycleLen, RatCycleOffs)
         var angle = (cycletime << 12) / RatCycleLen
         calcpath((((sin(angle) * ((pathlen >> 1) - 1)) >> 12) + (pathlen >> 1)), vvec)
         trotz = troty + 90deg

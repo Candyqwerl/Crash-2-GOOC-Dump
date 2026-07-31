@@ -48,51 +48,51 @@ var PistonStatus, ShrinkRayID, ShrinkRayShotCount, PlaqueBaseY
 
 state Piston_Up { // 0
     stateflag 0x80000A01
-    code(cyclelen, cycleoff, uplen) {
+    code(cyclelen, cycleoffs, up_time) {
         cyclelen = cyclelen * 1s / 1.2s
-        cycleoff = cycleoff * 1s / 1.2s
+        cycleoffs = cycleoffs * 1s / 1.2s
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER | 0x400000
-        var piston_frame, downlen, piston_phase, carry_time, carrying_player, carry_y
-        downlen = cyclelen - uplen
-        if (downlen < 0) {
-            downlen = 0
+        var frame, down_time, phase, carry_time, carrying_player, carry_y
+        down_time = cyclelen - up_time
+        if (down_time < 0) {
+            down_time = 0
         }
         setanim(PISTON_UP)
         do {
-            piston_frame = time(cyclelen, cycleoff)
-            if (piston_frame < uplen) {
-                v0 = uplen - 13
-                if (piston_frame >= v0) {
-                    if (piston_frame == v0) {
+            frame = time(cyclelen, cycleoffs)
+            if (frame < up_time) {
+                v0 = up_time - 13
+                if (frame >= v0) {
+                    if (frame == v0) {
                         soundpitch(1.740)
                         soundplay([DSmgA], 0.2V)
                     }
-                    piston_phase = 3
-                    piston_frame = 12 - (piston_frame - v0)
+                    phase = 3
+                    frame = 12 - (frame - v0)
                 }
                 else {
-                    piston_phase = 0
-                    piston_frame = 12
+                    phase = 0
+                    frame = 12
                 }
             }
             else {
-                piston_frame -= uplen
-                v0 = downlen - 13
-                if (piston_frame >= v0) {
-                    if (piston_frame == v0) {
+                frame -= up_time
+                v0 = down_time - 13
+                if (frame >= v0) {
+                    if (frame == v0) {
                         soundpitch(2.903)
                         soundplay([DSmgA], 0.5V)
                     }
-                    piston_phase = 1
-                    piston_frame -= v0
+                    phase = 1
+                    frame -= v0
                 }
                 else {
-                    piston_phase = 2
-                    piston_frame = 0
+                    phase = 2
+                    frame = 0
                 }
             }
             carrying_player = 0
-            if (piston_phase == 1 || piston_phase == 0) {
+            if (phase == 1 || phase == 0) {
                 if (distance(player, DIST_EXACT | DIST_NO_Y) <= 1.3m) {
                     getvert(vvec, self, 0)
                     carry_y = vecy
@@ -107,31 +107,31 @@ state Piston_Up { // 0
                             player -> groundvel = player -> vely
                         }
                         carrying_player = 1
-                        if (piston_phase == 1) {
+                        if (phase == 1) {
                             carry_time += 1
                         }
                     }
                 }
             }
-            playframe(piston_frame << 8)
+            playframe(frame << 8)
         } while (1)
     }
 }
 
 state Piston_Down { // 1
-    code(cyclelen, cycleoff, downlen, size) {
+    code(cyclelen, cycleoffs, down_time, size) {
         zindex = 24
         cyclelen = cyclelen * 1s / 1.2s
-        cycleoff = cycleoff * 1s / 1.2s
-        downlen = downlen * 1s / 1.2s
+        cycleoffs = cycleoffs * 1s / 1.2s
+        down_time = down_time * 1s / 1.2s
         PistonStatus = 0
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_SOLID_BOTTOM
-        var piston_frame, uplen, piston_phase, can_crush = 1, full_extend
-        uplen = cyclelen - downlen
-        if (uplen < 0) {
-            uplen = 0
+        var frame, up_time, phase, can_crush = 1, full_extend
+        up_time = cyclelen - down_time
+        if (up_time < 0) {
+            up_time = 0
         }
-        if (size == 0) {
+        if (!size) {
             setanim(PISTON_MINI)
         }
         else {
@@ -139,46 +139,46 @@ state Piston_Down { // 1
         }
         do {
             full_extend = 0
-            piston_frame = time(cyclelen, cycleoff)
-            if (piston_frame < downlen) {
-                v0 = downlen - 8
-                if (piston_frame >= v0) {
-                    if (piston_frame == v0) {
+            frame = time(cyclelen, cycleoffs)
+            if (frame < down_time) {
+                v0 = down_time - 8
+                if (frame >= v0) {
+                    if (frame == v0) {
                         soundpitch(2.903)
                         soundplay([DSmgA], 0.5V)
                     }
-                    piston_phase = 3
-                    piston_frame = (piston_frame - v0) + 1
+                    phase = 3
+                    frame = (frame - v0) + 1
                 }
                 else {
-                    piston_phase = 0
-                    piston_frame = 0
+                    phase = 0
+                    frame = 0
                 }
             }
             else {
-                piston_frame -= downlen
-                if (piston_frame == 0) {
+                frame -= down_time
+                if (frame == 0) {
                     full_extend = 1
                 }
-                v0 = uplen - 12
-                if (piston_frame >= v0) {
-                    if (piston_frame == v0) {
+                v0 = up_time - 12
+                if (frame >= v0) {
+                    if (frame == v0) {
                         soundpitch(1.740)
                         soundplay([DSmgA], 0.2V)
                     }
-                    piston_phase = 1
-                    piston_frame = (piston_frame - v0) + 9
+                    phase = 1
+                    frame = (frame - v0) + 9
                 }
                 else {
-                    piston_phase = 2
-                    piston_frame = 8
+                    phase = 2
+                    frame = 8
                 }
             }
-            if (piston_phase == 0) {
+            if (phase == 0) {
                 can_crush = 1
             }
             if (!(player -> stateflag & 0x20) && !player -> invincible) {
-                if (piston_phase == 0) {
+                if (phase == 0) {
                     PistonStatus = 0
                 }
             }
@@ -186,11 +186,11 @@ state Piston_Down { // 1
                 if (PistonStatus == 0) {
                     PistonStatus = 1
                 }
-                if (piston_phase == 0) {
+                if (phase == 0) {
                     PistonStatus = 2
                 }
             }
-            if (piston_phase == 3 || full_extend) {
+            if (phase == 3 || full_extend) {
                 if (PistonStatus == 0
                     && collider
                     && can_crush
@@ -205,7 +205,7 @@ state Piston_Down { // 1
                 playframe(0)
             }
             else {
-                playframe(piston_frame << 8)
+                playframe(frame << 8)
                 if (full_extend) {
                     unless(SHAKEY) {
                         SHAKEY = 0 > 3.2m / 256 - abs(x - player -> x) / (1m / 256) ? 0 : 3.2m / 256 - abs(x - player -> x) / (1m / 256)
@@ -483,9 +483,9 @@ inline sub RobotFootstep(anim_time) {
 }
 
 state Robot_Walker { // 14
-    code(cyclelen, cycleoff) {
+    code(cyclelen, cycleoffs) {
         cyclelen = cyclelen * 1s / 1.2s
-        cycleoff = cycleoff * 1s / 1.2s
+        cycleoffs = cycleoffs * 1s / 1.2s
         trotx = 720deg
         zindex = 40
         statusb = FLAG_ROT_Y | FLAG_TRACK_PATH_ROT | FLAG_TRACK_PATH_SIGN | FLAG_ROT_INWARDS | FLAG_COLLIDABLE | FLAG_SOLID_ALL
@@ -495,7 +495,7 @@ state Robot_Walker { // 14
         half_cycle = cyclelen >> 1
         full_cycle = pathlen << 1
         do {
-            v0 = time(cyclelen, cycleoff)
+            v0 = time(cyclelen, cycleoffs)
             anim_time = v0
             pathprog = ((v0 * full_cycle) / cyclelen)
             returning = 0
@@ -636,4 +636,3 @@ state Sleep { // 20
         playnull()
     }
 }
-

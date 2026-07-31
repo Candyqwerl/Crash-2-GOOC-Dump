@@ -23,8 +23,8 @@
 #spawn S_EEL            Electric_Eel
 #spawn S_BARREL         Barrel_Init
 
-var DoorLastPlayerSide, FanBladeTarget, BarrelPivot, BarrelArc, BarrelCyclelen,
-    BarrelCycleoff, BarrelAngle, BarrelRadius, BarrelZindex1, BarrelZindex2, BarrelZindex3
+var DoorLastPlayerSide, TargetFanBladeCount, BarrelPivot, BarrelArc, BarrelCyclelen,
+    BarrelCycleOffs, BarrelAngle, BarrelRadius, BarrelZindex1, BarrelZindex2, BarrelZindex3
 
 state Door_Init { // 0
     statusc 0x22
@@ -82,26 +82,26 @@ state Door_Open { // 2
 }
 
 state Fan { // 3
-    code(yaw, cyclelen, cycleoff) {
+    code(yaw, cyclelen, cycleoffs) {
         cyclelen = cyclelen * 1s / 1.2s
-        cycleoff = cycleoff * 1s / 1.2s
+        cycleoffs = cycleoffs * 1s / 1.2s
         if (spawn == S_FAN_BREAK) {
             SetScale(0.8333S)
             if (yaw == 0deg) {
                 settrans(SendHitEvent)
             }
         }
-        FanBladeTarget = 3.0
-        v0 = 360deg / (FanBladeTarget >> 8)
+        TargetFanBladeCount = 3.0
+        v0 = 360deg / (TargetFanBladeCount >> 8)
         roty = yaw
         rotz = roty + 90deg
         health = 0
 
-        do (var blades = 0) {
-            spawn(SeweC, S_FAN_BLADE, 1, rotz, blades)
+        do (var index = 0) {
+            spawn(SeweC, S_FAN_BLADE, 1, rotz, index)
             rotz += v0
-            blades += 1.0
-        } while (blades < FanBladeTarget)
+            index += 1.0
+        } while (index < TargetFanBladeCount)
 
         rotz = roty + 90deg
 
@@ -116,7 +116,7 @@ state Fan { // 3
         }
         statusb = FLAG_COLLIDABLE | FLAG_SOLID_SIDES
         while (child) {
-            rotx = (time(cyclelen, cycleoff) << 12) / cyclelen
+            rotx = (time(cyclelen, cycleoffs) << 12) / cyclelen
             playanim(0, FAN_MOTOR)
         }
         changestate(Fan_Kill)
@@ -144,7 +144,7 @@ state Fan_Blade { // 4
     stateflag 0x2000001
     statusc 0
     __transargs
-    code(roll, blade_id) {
+    code(roll, index) {
         parent -> health += 1.0
         zindex = creator -> zindex
         rotz = creator -> rotz
@@ -166,25 +166,25 @@ state Fan_Blade { // 4
             }
         }
         if (creator -> spawn == S_FAN) {
-            if (blade_id == 0) {
+            if (index == 0) {
                 soundpitch(2.903)
                 sounddecay(6.4s)
                 soundplay([FSlSA], 0.4V)
             }
         }
         else {
-            if (blade_id == 0) {
+            if (index == 0) {
                 sounddecay(6.8s)
                 soundpitch(4.563)
                 soundplay([FSlSA], 0.3V)
             }
-            else if (blade_id == 1.0) {
+            else if (index == 1.0) {
                 sounddelay(0.25s)
                 sounddecay(6.8s)
                 soundpitch(4.563)
                 soundplay([FSlSA], 0.3V)
             }
-            else if (blade_id == 2.0) {
+            else if (index == 2.0) {
                 sounddelay(0.55s)
                 sounddecay(6.8s)
                 soundpitch(4.563)
@@ -232,13 +232,13 @@ state Fan_Blade_Break { // 6
 
 state Barrel_Init { // 7
     statusc 0x12
-    code(angle, radius, pivot, arc, cyclelen, cycleoff, zindex1, zindex2, zindex3) {
+    code(angle, radius, pivot, arc, cyclelen, cycleoffs, zindex1, zindex2, zindex3) {
         BarrelAngle = angle
         BarrelRadius = radius
         BarrelPivot = pivot
         BarrelArc = arc
         BarrelCyclelen = cyclelen * 1s / 1.2s
-        BarrelCycleoff = cycleoff * 1s / 1.2s
+        BarrelCycleOffs = cycleoffs * 1s / 1.2s
         BarrelZindex1 = zindex1
         BarrelZindex2 = zindex2
         BarrelZindex3 = zindex3
@@ -268,9 +268,9 @@ state Barrel { // 8
         if (STATUS_FIRSTFRAME) {
             v0 = (BarrelArc * 45deg) / BarrelCyclelen
         }
-        var cycletime = time(BarrelCyclelen, BarrelCycleoff)
-        field_61 = (cycletime * v0) >> 8
-        if (field_61 == 0 || cycletime == (BarrelCyclelen >> 1)) {
+        var cycle_time = time(BarrelCyclelen, BarrelCycleOffs)
+        field_61 = (cycle_time * v0) >> 8
+        if (field_61 == 0 || cycle_time == (BarrelCyclelen >> 1)) {
             soundpitch(1.45)
             soundplay([BRlaA], 0.3V)
         }
@@ -332,9 +332,11 @@ sub SetParticleColor() {
 state Electric_Eel { // 10
     statusc 0x12
     __transargs
-    code(cyclelen, cycleoff, shocklen) {
+    code(cyclelen, cycleoffs, shocklen) {
         zindex = fieldval(ENTITY_FIELD_ZINDEX)
-        if (zindex == 0) zindex = 24;
+        if (!zindex) {
+            zindex = 24
+        }
         spawn(9, 42, 1, 0, 0x333)
         spawn(9, 42, 1, 1.0, 0x333)
         statusb = FLAG_ROT_Y
@@ -348,7 +350,7 @@ state Electric_Eel { // 10
     event(e, a) {
         if (e == EventTriggered) {
             accev()
-            cycleoff = cyclelen - time(cyclelen)
+            cycleoffs = cyclelen - time(cyclelen)
         }
         if (e == Event26) {
             accev()
@@ -365,21 +367,21 @@ state Electric_Eel { // 10
         }
         troty = atan2(player -> trans)
         GLOBAL_136 = 0
-        var cycletime = time((cyclelen * 1s / 1.2s), (cycleoff * 1s / 1.2s))
-        var shocktime = 0
-        if (cycletime >= 0 && cycletime <= 7) {
-            shocktime = cycletime
-            var flashtime = shocktime * 7 / 7
-            unless((flashtime >> 1) & 1) {
+        var cycle_time = time((cyclelen * 1s / 1.2s), (cycleoffs * 1s / 1.2s))
+        var shock_time = 0
+        if (cycle_time >= 0 && cycle_time <= 7) {
+            shock_time = cycle_time
+            var flash_time = shock_time * 7 / 7
+            unless((flash_time >> 1) & 1) {
                 GLOBAL_136 = 0x8080
                 setanim(EEL_ELECTRIFIED)
                 soundpitch(3.263)
                 soundplay([EelaA], 1V)
             }
         }
-        else if (cycletime >= 7 && cycletime <= shocklen + 7) {
-            shocktime = cycletime - 7
-            var flashtime = shocktime * 7 / (shocklen + 7) - 7
+        else if (cycle_time >= 7 && cycle_time <= shocklen + 7) {
+            shock_time = cycle_time - 7
+            var flash_time = shock_time * 7 / (shocklen + 7) - 7
             setanim(EEL_ELECTRIFIED)
             GLOBAL_136 = 0x8080
             sendeventif(EventShock2, player, player -> statusa & 0x800000 && GLOBAL_119 & 0x2 && !(player -> stateflag & 0x20) && !player -> invincible, 100.0)

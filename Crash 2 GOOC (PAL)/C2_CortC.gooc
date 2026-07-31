@@ -237,7 +237,7 @@ state Exhaust_Glow {
 state Asteroid {
     code(x_pos, y_pos, z_pos) {
         SetTrans(x_pos, y_pos, z_pos)
-        moda = 1S
+        moda = 16.0
         SetScale(0S)
         while (scalex < 1S) {
             SetScale(seek(scalex, 1S, 0x333))
