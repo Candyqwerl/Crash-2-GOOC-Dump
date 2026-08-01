@@ -115,7 +115,7 @@ state Mine_Float { // 1
     statusc 0
     code() { 
         zindex = fieldval(ENTITY_FIELD_ZINDEX)
-        if !(zindex) {
+        if (!zindex) {
             zindex = 5
         }
         statusb = FLAG_COLLIDABLE | 0x80000000
@@ -194,7 +194,7 @@ state Mine_Path { // 3
     __transargs
     code(cyclelen, cycleoffs) {
         zindex = fieldval(ENTITY_FIELD_ZINDEX)
-        if (zindex == 0) zindex = 5;
+        if (!zindex) zindex = 5;
         statusb = FLAG_TRACK_PATH_SIGN | FLAG_COLLIDABLE | FLAG_SOLID_ALL
         sleepanim(0, MINE)
     }
