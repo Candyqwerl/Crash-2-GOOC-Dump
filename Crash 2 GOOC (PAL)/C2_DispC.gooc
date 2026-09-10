@@ -195,8 +195,8 @@
 #spawn S_6                        __s_6                           // S6
 #spawn S_7                        __s_7                           // S7
 #spawn S_DEMO_TEXT                Demo_Text                       // S8
-#spawn S_9                        __s_9                           // S9
-#spawn S_VARIABLE_DISPLAY         Variable_Display                // S10
+#spawn S_9                        __s_9                           // s9
+#spawn S_VARIABLE_DISPLAY         Variable_Display                // S1
 #spawn S_COLLECTABLE_DISPLAY      HUD_Collectable_Display         // S11
 #spawn S_12                       __s_12                          // S12
 #spawn S_BONUS_WUMPA_DISPLAY      HUD_Bonus_Wumpa_Display         // S13
@@ -700,7 +700,7 @@ state Bonus_Text { // 13
     }
 }
 
-sub SetLevelName(level) {
+sub SetLevelID(level) {
     misc = 0
     if (level == LEVEL_Intro)         misc = 0;
     if (level == LEVEL_WarpRoom)      misc = 0;
@@ -745,7 +745,7 @@ sub SetLevelName(level) {
     if (level == LEVEL_BossCortex)    misc = -5;
 }
 
-sub SetLevelID(level) {
+sub SetLevelName(level) {
     misc = 6.0
     if (level == LEVEL_Intro)         misc = 7.0;
     if (level == LEVEL_WarpRoom)      misc = 8.0;
@@ -847,9 +847,9 @@ state Pause_Menu_Root { // 14
         else {
             field_61 = 3.0
         }
-        SetLevelID(LEVEL)
-        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), misc, x - 80.0, -4.0, 0, 6.0, 74.0) // Level name
         SetLevelName(LEVEL)
+        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), misc, x - 80.0, -4.0, 0, 6.0, 74.0) // Level name
+        SetLevelID(LEVEL)
         DisplayFrame = misc
         if (DisplayFrame) {
             field_62 = DisplayFrame > 0
