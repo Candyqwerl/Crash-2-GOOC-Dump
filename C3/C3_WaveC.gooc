@@ -1,0 +1,263 @@
+#gool WaveC 56 5
+
+#include "..\\Includes\\goolstdlib.gooc"
+//gooc -c 2 -r pal "C3\C3_WaveC.gooc" "C3\Out\C3_WaveC.nsentry"
+
+#anim EGYPT_STAIRS       [uw1iV] 1 1  // 0x000
+#anim EGYPT_RAMP         [uw2iV] 1 1  // 0x500
+#anim WAVE_0             [WF1iV] 20 0 // 0xA00
+#anim WAVE_1             [WF2iV] 20 0 // 0xF00
+#anim WAVE_2             [WF3iV] 20 0 // 0x1400
+#anim WAVE_3             [WF4iV] 20 0 // 0x1900
+#anim WAVE_4             [WF5iV] 20 0 // 0x1E00
+#anim WAVE_5             [WG1iV] 20 0 // 0x1FE00
+#anim WAVE_6             [WG2iV] 20 0 // 0x20300
+#anim WAVE_7             [WG3iV] 20 0 // 0x20800
+#anim WAVE_8             [WG4iV] 20 0 // 0x20D00
+#anim WAVE_9             [WG5iV] 20 0 // 0x21200
+
+#spawn S_WAVE_0          Wave_Init
+#spawn S_WAVE_1          Wave_Init
+#spawn S_WAVE_2          Wave_Init
+#spawn S_WAVE_3          Wave_Init
+#spawn S_WAVE_4          Wave_Init
+#spawn S_WAVE_5          Wave_Init
+#spawn S_WAVE_6          Wave_Init
+#spawn S_WAVE_7          Wave_Init
+#spawn S_WAVE_8          Wave_Init
+#spawn S_WAVE_9          Wave_Init
+#spawn S_EGYPT_STAIRS    UnderWater_OBJ
+#spawn S_EGYPT_RAMP      UnderWater_OBJ
+
+event Event26 => sub KillVoice
+
+// Uses C3 framegroup offsets (+0x500); each wave anim uses a 20 entry sequence
+array WaveAnimTable = {
+    0x1400, 0x2D00, 0x4600, 0x5F00, 0x7800, 0x9100, 0xAA00, 0xC300, 0xDC00, 0xF500,
+    0x10E00, 0x12700, 0x14000, 0x15900, 0x17200, 0x18B00, 0x1A400, 0x1BD00, 0x1D600, 0x1EF00,
+    0x1FE00, 0x21700, 0x23000, 0x24900, 0x26200, 0x27B00, 0x29400, 0x2AD00, 0x2C600, 0x2DF00,
+    0x2F800, 0x31100, 0x32A00, 0x34300, 0x35C00, 0x37500, 0x38E00, 0x3A700, 0x3C000, 0x3D900,
+    0x20300, 0x21C00, 0x23500, 0x24E00, 0x26700, 0x28000, 0x29900, 0x2B200, 0x2CB00, 0x2E400,
+    0x2FD00, 0x31600, 0x32F00, 0x34800, 0x36100, 0x37A00, 0x39300, 0x3AC00, 0x3C500, 0x3DE00,
+    0x20800, 0x22100, 0x23A00, 0x25300, 0x26C00, 0x28500, 0x29E00, 0x2B700, 0x2D000, 0x2E900,
+    0x30200, 0x31B00, 0x33400, 0x34D00, 0x36600, 0x37F00, 0x39800, 0x3B100, 0x3CA00, 0x3E300,
+    0x20D00, 0x22600, 0x23F00, 0x25800, 0x27100, 0x28A00, 0x2A300, 0x2BC00, 0x2D500, 0x2EE00,
+    0x30700, 0x32000, 0x33900, 0x35200, 0x36B00, 0x38400, 0x39D00, 0x3B600, 0x3CF00, 0x3E800,
+    0x21200, 0x22B00, 0x24400, 0x25D00, 0x27600, 0x28F00, 0x2A800, 0x2C100, 0x2DA00, 0x2F300,
+    0x30C00, 0x32500, 0x33E00, 0x35700, 0x37000, 0x38900, 0x3A200, 0x3BB00, 0x3D400, 0x3ED00,
+    0x1900, 0x3200, 0x4B00, 0x6400, 0x7D00, 0x9600, 0xAF00, 0xC800, 0xE100, 0xFA00,
+    0x11300, 0x12C00, 0x14500, 0x15E00, 0x17700, 0x19000, 0x1A900, 0x1C200, 0x1DB00, 0x1F400,
+    0x1E00, 0x3700, 0x5000, 0x6900, 0x8200, 0x9B00, 0xB400, 0xCD00, 0xE600, 0xFF00,
+    0x11800, 0x13100, 0x14A00, 0x16300, 0x17C00, 0x19500, 0x1AE00, 0x1C700, 0x1E000, 0x1F900,
+    0xA00, 0x2300, 0x3C00, 0x5500, 0x6E00, 0x8700, 0xA000, 0xB900, 0xD200, 0xEB00,
+    0x10400, 0x11D00, 0x13600, 0x14F00, 0x16800, 0x18100, 0x19A00, 0x1B300, 0x1CC00, 0x1E500,
+    0xF00, 0x2800, 0x4100, 0x5A00, 0x7300, 0x8C00, 0xA500, 0xBE00, 0xD700, 0xF000,
+    0x10900, 0x12200, 0x13B00, 0x15400, 0x16D00, 0x18600, 0x19F00, 0x1B800, 0x1D100, 0x1EA00
+}
+
+var Cyclelen, LowTime, HighTime, TransTime, CycleOff, PeakY, BaseY, WaveAnim, FrameOffs
+
+state Wave_Init { // 0
+    code(lowtime, hightime, transtime, cycleoffs, frameoffs, riseheight, scaz) {
+        movetolist(1.0)
+        playnull()
+        LowTime = lowtime * 90s / 120s
+        HighTime = hightime * 1s / 1.2s
+        TransTime = transtime * 1s / 1.2s
+        scalez = scaz
+        FrameOffs = frameoffs * 0.8s >> 8
+        if (FrameOffs < 0) {
+            FrameOffs = 0
+        }
+        if (FrameOffs >= 0.8s) {
+            FrameOffs = 0.8s - 1
+        }
+        BaseY = y
+        PeakY = BaseY + riseheight
+        Cyclelen = LowTime + (HighTime + (TransTime << 1))
+        CycleOff = cycleoffs * Cyclelen >> 8
+        if (CycleOff < 0) {
+            CycleOff = 0
+        }
+        if (CycleOff >= Cyclelen) {
+            CycleOff = Cyclelen - 1
+        }
+        statusb = FLAG_NO_CAMERA_CLIP
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) zindex = 32;
+        vfx = (vfx & 0xFFFF00FF) | 0x600
+        if (spawn == S_WAVE_0) {
+            WaveAnim = WaveAnimTable[160]
+        }
+        else if (spawn == S_WAVE_1) {
+            WaveAnim = WaveAnimTable[180]
+        }
+        else if (spawn == S_WAVE_2) {
+            WaveAnim = WaveAnimTable[0]
+        }
+        else if (spawn == S_WAVE_3) {
+            WaveAnim = WaveAnimTable[20]
+        }
+        else if (spawn == S_WAVE_4) {
+            WaveAnim = WaveAnimTable[40]
+        }
+        else if (spawn == S_WAVE_5) {
+            WaveAnim = WaveAnimTable[60]
+        }
+        else if (spawn == S_WAVE_6) {
+            WaveAnim = WaveAnimTable[80]
+        }
+        else if (spawn == S_WAVE_7) {
+            WaveAnim = WaveAnimTable[100]
+        }
+        else if (spawn == S_WAVE_8) {
+            WaveAnim = WaveAnimTable[120]
+        }
+        else if (spawn == S_WAVE_9) {
+            WaveAnim = WaveAnimTable[140]
+        } 
+        else {
+            WaveAnim = WaveAnimTable[160]
+        }
+        changestate(Wave_Low)
+    }
+}
+
+state Wave_Low { // 1
+    code() {
+        y = BaseY
+        do {
+            v0 = (GLOBAL_194 + CycleOff) % Cyclelen
+            changestateif(Wave_Rise, v0 >= LowTime)
+            animframe = time(0.8s, FrameOffs) << 8
+            animseq = WaveAnim[animframe]
+            playframe()
+        } while (1)
+    }
+    trans {
+        if (z < CAMTRANSZ - 8m) {
+            vfx = (vfx & 0xFFFF00FF) | 0x600
+        }
+        else {
+            vfx = (vfx & 0xFFFF00FF) | 0x1A00
+        }
+        unless(stateflag \ 0x20) {
+            if (GLOBAL_3) {
+                changestate(Wave_Sleep)
+            }
+            else {
+                if ((!GLOBAL_60 || z >= GLOBAL_60) && z < CAMTRANSZ) {
+                    GLOBAL_60 = z
+                    GLOBAL_118 = y + 0.22m
+                }
+            }
+        }
+        unless(rand(10)) {
+            if (abs(z - player -> z) < 12m && FRAMETIME < 36) {
+                save(x, y, z) {
+                    x -= rand(4m)
+                    y = BaseY
+                    z += rand(4m)
+                    spawn(9, 9, 1, -1.0, 0, x, GLOBAL_118, z, 1.6, 3.2, 1m)
+                }
+            }
+        }
+    }
+}
+
+state Wave_Rise { // 2
+    trans => state Wave_Low
+    code() {
+        do {
+            v0 = (GLOBAL_194 + CycleOff) % Cyclelen
+            v0 -= LowTime
+            if (v0 == 0) {
+                if (GLOBAL_11 != frametime) {
+                    GLOBAL_11 = frametime
+                    soundpitch(4.0)
+                    soundsetup(10, self, 8)
+                    soundplay([Wv2oA], 1V)
+                }
+            }
+            changestateif(Wave_Low, v0 < 0)
+            changestateif(Wave_High, v0 >= TransTime)
+            y = BaseY + ((((PeakY - BaseY >> 8) * v0) / TransTime) << 8)
+            animframe = time(0.8s, FrameOffs) << 8
+            animseq = WaveAnim[animframe]
+            playframe()
+        } while (1)
+    }
+}
+
+state Wave_High { // 3
+    trans => state Wave_Low
+    code() {
+        y = PeakY
+        do {
+            v0 = (GLOBAL_194 + CycleOff) % Cyclelen
+            v0 -= (LowTime + TransTime)
+            changestateif(Wave_Rise, v0 < 0)
+            changestateif(Wave_Drain, v0 >= HighTime)
+            animframe = time(0.8s, FrameOffs) << 8
+            animseq = WaveAnim[animframe]
+            playframe()
+        } while (1)
+    }
+}
+
+state Wave_Drain { // 4
+    trans => state Wave_Low
+    code() {
+        do {
+            v0 = (GLOBAL_194 + CycleOff) % Cyclelen
+            v0 -= (LowTime + (TransTime + HighTime))
+            if (v0 == 0) {
+                if (GLOBAL_11 != frametime) {
+                    GLOBAL_11 = frametime
+                    soundpitch(2.905)
+                    soundsetup(10, self, 8)
+                    soundplay([Wv1oA], 1V)
+                }
+            }
+            changestateif(Wave_Low, v0 < 0)
+            y = PeakY + ((((BaseY - PeakY >> 8) * v0) / TransTime) << 8)
+            animframe = time(0.8s, FrameOffs) << 8
+            animseq = WaveAnim[animframe]
+            playframe()
+        } while (1)
+    }
+}
+
+state Wave_Sleep { // 5
+    trans => state Wave_Low
+    stateflag 0x21
+    code() {
+        GLOBAL_118 = GLOBAL_3
+        do {
+            changestateifn(Wave_Low, GLOBAL_3)
+            animframe = time(0.8s, FrameOffs) << 8
+            animseq = WaveAnim[animframe]
+            playframe()
+        } while (1)
+    }
+}
+
+state UnderWater_OBJ { // 6
+    code() {
+        if (spawn == S_EGYPT_STAIRS) {
+            setanim(EGYPT_STAIRS)
+        }
+        else if (spawn == S_EGYPT_RAMP) {
+            setanim(EGYPT_RAMP)
+        }
+        sleepframe(0)
+    }
+}
+
+sub KillVoice() {
+    if (voice > 0) {
+        soundsetup(0, voice, 5)
+        soundsetup(12, voice, 6)
+        soundsetup(0, voice, 3, 0)
+    }
+}

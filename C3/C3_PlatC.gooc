@@ -1,0 +1,785 @@
+#gool PlatC 14 6
+
+#include "..\\Includes\\goolstdlib.gooc"
+
+//gooc -c 2 -r pal -l f "MyGOOC\Decomp\C2\C3_PlatC.gooc" "MyGOOC\Decomp\C2\C3_PlatC.nsentry"
+
+#anim PLATFORM_1  [Pl1AV] 1 1
+#anim PLATFORM_2  [Pl2iV] 1 1
+#anim PLATFORM_3  [Pl3iV] 1 1
+#anim PLATFORM_4  [Pl4iV] 1 1
+#anim PLATFORM_5  [Pl5iV] 1 1
+#anim PLATFORM_6  [Pl6iV] 1 1
+#anim PLATFORM_7  [Pl7iV] 1 1
+#anim PLATFORM_8  [Pl8iV] 1 1
+#anim PLATFORM_9  [Pl9iV] 1 1
+
+#spawn S_0                 __s_0
+#spawn S_PLAT_DROP         Platform_Drop_Init
+#spawn S_PLAT_PATH         Platform_Path_Init
+#spawn S_SPAWN_3           Platform_Drop_Init
+#spawn S_SPAWN_4           Platform_Drop_Init
+#spawn S_SPAWN_5           Platform_Drop_Init
+#spawn S_SPAWN_6           Platform_Drop_Init
+#spawn S_PLAT_TOUCH        Platform_Touch_Init
+#spawn S_PLAT_GEM          Platform_Touch_Init
+#spawn S_PLAT_CONVEYOR     Platform_Conveyor_Spawner
+#spawn S_PLAT_IN_OUT       Platform_In_Out_Init
+#spawn S_PLAT_SWING        Platform_Swing_Init
+
+var PlatTransFunc, PlatFallTransFunc, PlatContactFrame, PlatVar4, PlatDropFallSpeed, PlatBobYOff, PlatBobSpeed,
+    PlatPathSpeed, PlatVar9, PlatVar10, PlatDropGravity, PlatVar12, PlatDropDistance,
+    PlatVar14, PlatVar15, PlatCycleLen, PlatCycleOffs, PlatPathPauseLen, PlatVar19, PlatVar20
+
+expr LEVEL_TombTime = 0x1200
+expr LEVEL_Sphynxinator = 0x1E00
+expr LEVEL_TombWader = 0x1800
+expr LEVEL_BugLight = 0x2400
+expr LEVEL_FutureFrenzy = 0x1B00
+expr LEVEL_GoneTomorrow = 0x2300
+
+// Change statusc to 0x200002 if using in C2.
+
+sub SelectPlatAnim(anim) {
+    field_63 = 1.0
+    if (anim == 0.0) {
+        setanim(PLATFORM_1)
+    }
+    else if (anim == 1.0) {
+        setanim(PLATFORM_2)
+    }
+    else if (anim == 2.0) {
+        setanim(PLATFORM_3)
+    }
+    else if (anim == 3.0) {
+        setanim(PLATFORM_4)
+    }
+    else if (anim == 4.0) {
+        setanim(PLATFORM_5)
+    }
+    else if (anim == 5.0) {
+        setanim(PLATFORM_6)
+    }
+    else if (anim == 6.0) {
+        setanim(PLATFORM_7)
+    }
+    else if (anim == 7.0) {
+        setanim(PLATFORM_8)
+        field_63 = 0x1800
+    }
+    else if (anim == 8.0) {
+        setanim(PLATFORM_9)
+    }
+    animframe = 0
+}
+
+state Platform_Path_Init { // 0
+    statusc 0x80002
+    code(type, cyclelen, cycleoffs, pauselen, rotspd, activedur, flags) {
+        PlatCycleLen = abs(cyclelen) * 1s / 1.2s
+        PlatCycleOffs = cycleoffs * 1s / 1.2s
+        PlatVar15 = activedur * 1s / 1.2s
+        PlatPathPauseLen = pauselen * 1s / 1.2s
+        trotx = rotspd
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) {
+            zindex = 24
+        }
+        if (!entity) {
+            pathlen = parent -> pathlen
+            entity = parent -> entity
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
+        SelectPlatAnim(type)
+        PlatTransFunc = 0
+        if (flags & 1) {
+            velz = z
+            vely = z
+            PlatTransFunc = getins(SUB_253)
+        }
+        if (PlatVar15) {
+            changestate(Platform_Path_Trigger)
+        }
+        else if (cyclelen < 0) {
+            changestate(Platform_Path)
+        }
+        else {
+            changestate(Platform_Path_Loop)
+        }
+    }
+}
+
+state Platform_Path_Trigger { // 1
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    event(e, a) {
+        if (e == EventTriggered) {
+            PlatCycleOffs = PlatCycleLen - (time(PlatCycleLen) + 1)
+            accevcstate(Platform_Path_Loop)
+        }
+    }
+    trans {
+        if (collider && statusa & 0x4000) {
+            PlatCycleOffs = PlatCycleLen - (time(PlatCycleLen) + 1)
+        }
+    }
+}
+
+state Platform_Path { // 2
+    stateflag 0x201
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    trans {
+        var travel_time = PlatCycleLen - (PlatPathPauseLen << 1)
+        var cycle_time = time(PlatCycleLen, PlatCycleOffs)
+        var phase_time = 0
+        if (PlatPathPauseLen > 0 && cycle_time >= 0 && cycle_time <= PlatPathPauseLen) {
+            phase_time = cycle_time
+        }
+        else if ((PlatPathPauseLen + travel_time) - PlatPathPauseLen > 0 && cycle_time >= PlatPathPauseLen && cycle_time <= PlatPathPauseLen + travel_time) {
+            phase_time = cycle_time - PlatPathPauseLen
+            var path_point = (phase_time * (pathlen - 1.0)) / ((PlatPathPauseLen + travel_time) - PlatPathPauseLen)
+            calcpath(path_point)
+            pathprog = path_point
+        }
+        else if ((PlatPathPauseLen + (PlatPathPauseLen + travel_time)) - (PlatPathPauseLen + travel_time) > 0 && cycle_time >= PlatPathPauseLen + travel_time && cycle_time <= PlatPathPauseLen + (PlatPathPauseLen + travel_time)) {
+            phase_time = cycle_time - (PlatPathPauseLen + travel_time)
+        }
+        roty = spd(roty, trotx)
+        call(PlatTransFunc)
+    }
+}
+
+sub SleepPlatAnim() {
+    if (field_63 == 1.0) {
+        sleep()
+    }
+    else {
+        do {
+            playframe((animframe + 1.0) % field_63)
+        } while (1)
+    }
+}
+
+state Platform_Path_Loop { // 3
+    stateflag 0x201
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    trans {
+        var travel_time = (PlatCycleLen - (PlatPathPauseLen << 1)) >> 1
+        var cycle_time = time(PlatCycleLen, PlatCycleOffs)
+        var phase_time = 0
+        if (PlatPathPauseLen > 0 && cycle_time >= 0 && cycle_time <= PlatPathPauseLen) {
+            phase_time = cycle_time
+        }
+        else if ((PlatPathPauseLen + travel_time) - PlatPathPauseLen > 0 && cycle_time >= PlatPathPauseLen && cycle_time <= PlatPathPauseLen + travel_time) {
+            phase_time = cycle_time - PlatPathPauseLen
+            var path_point = (phase_time * (pathlen - 1.0)) / ((PlatPathPauseLen + travel_time) - PlatPathPauseLen)
+            calcpath(path_point)
+            pathprog = path_point
+        }
+        else if ((PlatPathPauseLen + (PlatPathPauseLen + travel_time)) - (PlatPathPauseLen + travel_time) > 0 && cycle_time >= PlatPathPauseLen + travel_time && cycle_time <= PlatPathPauseLen + (PlatPathPauseLen + travel_time)) {
+            phase_time = cycle_time - (PlatPathPauseLen + travel_time)
+        }
+        else if (PlatCycleLen - (PlatPathPauseLen + (PlatPathPauseLen + travel_time)) > 0 && cycle_time >= PlatPathPauseLen + (PlatPathPauseLen + travel_time) && cycle_time <= PlatCycleLen) {
+            phase_time = cycle_time - (PlatPathPauseLen + (PlatPathPauseLen + travel_time))
+            var path_point = (pathlen - 1.0) + ((phase_time * -(pathlen - 1.0)) / (PlatCycleLen - (PlatPathPauseLen + (PlatPathPauseLen + travel_time))))
+            calcpath(path_point)
+            pathprog = path_point
+        }
+        roty = spd(roty, trotx)
+        call(PlatTransFunc)
+        changestateif(Platform_Path_Trigger, PlatVar15 && (frametime - statetime >= PlatVar15))
+    }
+}
+
+sub SUB_253() {
+    if (!collider) {
+        var target_z = seek(velz, player -> z, 2m)
+        vely += (target_z - vely) >> 2
+    }
+    z = vely
+}
+
+sub PlatTransBurn() {
+    sendeventif(EventBurn, collider, collider && player -> y < y - 0.2m && distance(player, DIST_EXACT | DIST_NO_Y) > 1.2m, 100.0)
+}
+
+state Platform_Sleep { // 4
+    stateflag 0x201
+    statusc 0x80002
+    code => sub SleepPlatAnim
+}
+
+state Platform_Drop_Init { // 5
+    statusc 0x80002
+    code(anim, dropdist, dropdelay, reset_delay, rise_speed, max_fall_spd, gravity, pathspd, maxtilt, reflection) {
+        field_61 = -gravity
+        PlatDropGravity = -max_fall_spd
+        PlatDropDistance = dropdist
+        PlatVar9 = dropdelay * 1s / 1.2s
+        PlatVar10 = reset_delay * 1s / 1.2s
+        PlatVar12 = rise_speed
+        PlatPathSpeed = pathspd
+        PlatVar14 = maxtilt
+        PlatVar15 = -2m
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) {
+            zindex = 32
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER | 0x400000
+        if (maxtilt) {
+            stalltime = true
+        }
+        else {
+            PlatVar14 = 20deg
+            stalltime = false
+        }
+        SetVel(x, y, z)
+        vely = y
+        PlatVar4 = 0
+        PlatBobYOff = 0
+        PlatBobSpeed = 0
+        vecx = x
+        vecz = z
+        SelectPlatAnim(anim)
+        if (reflection) {
+            if (ZONEFLAGS & 0x800) {
+                spawn(9, 28, 1) // OG spawns FutOC reflection (13-11)
+            }
+            else {
+                vfx = (vfx & 0xFFFF00FF) | 0xE00 // C2: 0xC00
+            }
+        }
+        if (var level = LEVEL; level == LEVEL_TombWader) {
+            PlatTransFunc = getins(PlatTransWave)
+            PlatFallTransFunc = 0
+            groundy = vely
+            statusb |= 0x8004000
+        }
+        else {
+            PlatTransFunc = 0
+            PlatFallTransFunc = 0
+        }
+        yzapproach = PlatVar14
+        changestate(Platform_Drop_Ready)
+    }
+}
+
+sub PlatTransWave() {
+    var c = cos(frametime << 6)
+    y = GLOBAL_118 - (0.1m + (c << 2))
+    if (y < groundy) {
+        y = groundy
+    }
+    epc = getins(SUB_375)
+}
+
+sub SUB_375(e, a) {
+    if (e == Event23) {
+        save (y) {
+            y += 100m
+            sendevent(EventHit, player, 100.0)
+        }
+    }
+}
+
+state Platform_Drop_Ready { // 6
+    stateflag 0x201
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    trans {
+        if (STATUS_FIRSTFRAME) {
+            if (collider) {
+                PlatContactFrame = frametime
+            }
+            else {
+                PlatContactFrame = 0
+            }
+            PlatDropFallSpeed = 0
+        }
+        UpdatePlatformTilt()
+        changestateif(Platform_Drop_Fall, ((PlatContactFrame && frametime - PlatContactFrame >= PlatVar9) || (collider && PlatVar4)) && PlatDropGravity)
+        PlatVar4 = seek(PlatVar4, 0, spd(PlatVar12))
+        SUB_645()
+    }
+}
+
+sub UpdatePlatformTilt() {
+    if (collider && (statusa & 0x4000)) {
+        var contact_x = collider -> x
+        var platform_y = y
+        var contact_z = collider -> z
+        vecx = seek(vecx, contact_x, spd(2m))
+        vecz = seek(vecz, contact_z, spd(2m))
+        sendeventif(Event64, player, distance(player, DIST_EXACT | DIST_NO_Y) > 1.1m, 0)
+        if (!(PlatContactFrame || !PlatDropGravity)) {
+            if (PlatVar15 < collider -> groundvel) {
+                PlatBobSpeed = collider -> groundvel
+            }
+            else {
+                PlatBobSpeed = PlatVar15
+            }
+            if (PlatBobSpeed >= -3m) {
+                PlatBobSpeed = -3m
+            }
+            PlatContactFrame = frametime
+            PlatBobSpeed = (PlatBobSpeed * 0x99) >> 8
+        }
+    }
+    else {
+        vecx = seek(vecx, x, spd(1.5m))
+        vecz = seek(vecz, z, spd(1.5m))
+    }
+    ApplyPlatformTilt()
+}
+
+sub ApplyPlatformTilt() {
+    if (stalltime) {
+        rotx = distance(vec, self, DIST_EXACT | DIST_NO_Y) / 650
+        rotz = atan2(self, vec)
+    }
+}
+
+sub SUB_645() {
+    PlatBobSpeed = spd(PlatBobSpeed, 20m)
+    PlatBobYOff = spd(PlatBobYOff, PlatBobSpeed)
+    if (PlatBobYOff >= 0 && PlatBobSpeed >= 0) {
+        PlatBobYOff = 0
+        PlatBobSpeed /= -2
+    }
+    y = vely + (PlatVar4 + PlatBobYOff)
+    call(PlatTransFunc)
+}
+
+sub SUB_688() {
+    var oldx = x
+    var oldz = z
+    if (PlatPathSpeed < 0) {
+        pathprog = (pathprog + spd(-PlatPathSpeed)) % (pathlen - 1.0)
+        calcpath(pathprog, vvel)
+        x = velx
+        z = velz
+    }
+    else if (pathlen > 1.0) {
+        calcpath(loopseek(pathprog, pathlen + (spd(PlatPathSpeed) - 1.0), spd(PlatPathSpeed)), vvel)
+        x = velx
+        z = velz
+    }
+    else {
+        var angle = ((velx >> 8) + ((velz >> 8) + GAMETICK)) << 6
+        var radius = 135deg - ((vely - y) / 100)
+        if ((velx + velz) & 0x2000) {
+            angle = -angle
+        }
+        x = velx + ((sin(angle) * radius) >> 8)
+        z = velz + ((cos(angle) * radius) >> 8)
+    }
+    vecx += x - oldx
+    vecz += z - oldz
+}
+
+state Platform_Drop_Fall { // 7
+    statusc 0x80002
+    code() {
+        if (LEVEL == LEVEL_TombTime || LEVEL == LEVEL_Sphynxinator || LEVEL == LEVEL_BugLight) {
+            sounddecay(7.7s)
+            SoundPitchDefault()
+            soundplay([DPlfA], 0.6V)
+        }
+        sleep()
+    }
+    trans {
+        changestateif(Platform_Drop_Wait_Reset, vely - y >= PlatDropDistance)
+        PlatDropFallSpeed = spd(PlatDropFallSpeed, PlatDropGravity)
+        if (PlatDropFallSpeed < field_61) {
+            PlatDropFallSpeed = field_61
+        }
+        PlatVar4 = spd(PlatVar4, PlatDropFallSpeed)
+        SUB_645()
+        vecx = seek(vecx, x, spd(1.5m))
+        vecz = seek(vecz, z, spd(1.5m))
+        ApplyPlatformTilt()
+        call(PlatFallTransFunc)
+    }
+}
+
+sub SUB_888() {
+    trotz = v0
+    PlatTransFunc = 0
+}
+
+sub BrightnessFadeIn() {
+    if (PlatVar4 >= -5m) {
+        moda = seek(moda, 0, 1.28)
+        if (moda == 0) {
+            PlatTransFunc = 0
+        }
+    }
+}
+
+state Platform_Drop_Wait_Reset { // 8
+    statusc 0x80002
+    code() {
+        WaitFrame(PlatVar10)
+        trotz = 0deg
+        if (spawn == S_SPAWN_3 || spawn == S_SPAWN_4 || spawn == S_SPAWN_5) {
+            PlatTransFunc = getins(BrightnessFadeIn)
+            changestate(Platform_Drop_Ready)
+        }
+        else {
+            changestate(Platform_Drop_Ready)
+        }
+    }
+}
+
+expr GEM_RED = 58.0
+expr GEM_GREEN = 59.0
+expr GEM_PURPLE = 60.0
+expr GEM_BLUE = 61.0
+expr GEM_YELLOW = 62.0
+
+sub SetPlatGemColor(gem_id) {
+    if (gem_id == GEM_RED) {
+        SetColor1(0x6C, 0x08, 0x08)
+    }
+    else if (gem_id == GEM_GREEN) {
+        SetColor1(0x08, 0x6C, 0x08)
+    }
+    else if (gem_id == GEM_PURPLE) {
+        SetColor1(0x6C, 0x08, 0x6C)
+    }
+    else if (gem_id == GEM_BLUE) {
+        SetColor1(0x00, 0x00, 0x80)
+    }
+    else if (gem_id == GEM_YELLOW) {
+        SetColor1(0x80, 0x80, 0x00)
+    }
+    else {
+        SetColor1(0x5A, 0x5A, 0x6C)
+    }
+    moda = 4.0
+    SetColor2(-0x725, 0x988, 0xAAF)
+}
+
+
+state Platform_Touch_Init { // 9
+    statusc 0x80002
+    code(anim, pathspd, rotspd, flags, gem_id) {
+        PlatPathSpeed = pathspd
+        trotx = rotspd
+        PlatVar12 = flags
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) {
+            zindex = 24
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
+        SelectPlatAnim(anim)
+        PlatformTouchPathInit()
+        pathprog = PlatVar14
+        PlatVar9 = 0
+        PlatTransFunc = 0
+        if (spawn == S_PLAT_GEM) {
+            SetPlatGemColor(gem_id)
+            if (var itemoffset = gem_id >> 8; itemoffset < 32) {
+                misc = SAVEDGEMPOOL1 & (1 << itemoffset)
+            }
+            else {
+                misc = SAVEDGEMPOOL2 & (1 << (itemoffset - 32))
+            }
+            if (!misc && !DEBUG) {
+                moda = 14.4
+                SelectPlatAnim(5.0)
+                statusb = 0
+                changestate(Platform_Sleep)
+            }
+            vfx = (vfx & 0xFFFFFF00) | 10
+            vfx = (vfx & 0xFF00FFFF) | 0x30000 // C2: 0x40000
+            trotx = 90deg
+        }
+        PlatVar15 = (PlatVar12 >> 8) << 8
+        if (PlatVar12 & 1) {
+            if (RESPAWNCOUNT && !entitygetstate(3)) {
+                SelectPlatAnim(5.0)
+                statusb = 0
+                changestate(Platform_Sleep)
+            }   
+            else {
+                PlatTransFunc = getins(RegisterPlatformTouch)
+            }
+        }
+        changestate(Platform_Touch)
+    }
+}
+
+state Platform_Touch { // 10
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    trans {
+        if (pathprog == PlatVar14) {
+            PlatVar9 += 1
+        }
+        else {
+            PlatVar9 = 0
+        }
+        if (collider && statusa & 0x4000) {
+            statetime = frametime
+            if (PlatVar9 > 50 && (frametime - 12) >= PlatVar10 && !(PlatVar12 & 2 && PlatVar14)) {
+                if (LEVEL == LEVEL_FutureFrenzy || LEVEL == LEVEL_GoneTomorrow) {
+                    if (PlatVar14) {
+                        soundpitch(4.0)
+                        soundplay([Tp1rA], 1V)
+                    }
+                    else {
+                        soundpitch(4.0)
+                        soundplay([Tp2rA], 1V)
+                    }
+                }
+                if (PlatVar14) {
+                    PlatVar14 = 0
+                }
+                else {
+                    PlatVar14 = pathlen - 1.0
+                }
+            }
+        }
+        else if (frametime - statetime >= 1s) {
+            PlatformTouchPathInit()
+            PlatVar10 = frametime
+        }
+        else {
+            PlatVar10 = frametime
+        }
+        pathprog = seek(pathprog, PlatVar14, PlatPathSpeed)
+        calcpath(pathprog)
+        roty = spd(roty, trotx)
+        call(PlatTransFunc)
+    }
+}
+
+sub PlatformTouchPathInit() {
+    if (PlatVar12 & 2) {
+        PlatVar14 = 0
+    }
+    else {
+        save (vecx, vecy, vecz, trotx, troty, trotz) {
+            calcpath(0, vvec)
+            calcpath(pathlen - 1.0, vtrot)
+            if (distance(vecx, player, self) < distance(trotx, player, self)) {
+                misc = 0
+            }
+            else {
+                misc = pathlen - 1.0
+            }
+        }
+        PlatVar14 = misc
+    }
+}
+
+sub RegisterPlatformTouch() {
+    if (collider) {
+        entitysetstate(5)
+        if (PlatVar15) {
+            entitysetstate(PlatVar15, 5)
+        }
+    }
+}
+
+state Platform_Conveyor_Spawner { // 11
+    statusc 0x80002
+    code(type, pathspd, count) {
+        do (var plats = 0) {
+            spawn2(PlatC, S_PLAT_PATH, 1, type, -pathspd, plats * (pathspd / (count >> 8)), 0, 0)
+        } while ({ plats += 1.0 }; plats < count)
+        sleepnull()
+    }
+}
+
+state Platform_In_Out_Init { // 12
+    statusc 0x80002
+    code(anim, cyclelen, cycleoffs, yaw, repeats, extend_wait) {
+        roty = yaw
+        PlatCycleLen = cyclelen * 1s / 1.2s
+        PlatCycleOffs = cycleoffs * 1s / 1.2s
+        PlatVar15 = repeats * 1s / 1.2s
+        PlatVar9 = extend_wait * 1s / 1.2s
+        var pfrac = (PlatCycleOffs << 8) / PlatCycleLen
+        PlatCycleLen = PlatCycleLen * 1s / 1.2s
+        PlatCycleLen += 1
+        PlatCycleLen &= 0xFFFE
+        PlatCycleOffs = (PlatCycleLen * pfrac) >> 8
+        SelectPlatAnim(anim)
+        statusb = 0x8030010
+        if (PlatVar15) {
+            changestate(Platform_In_Out_Trigger)
+        }
+        else {
+            changestate(Platform_In_Out_Cycle)
+        }
+    }
+}
+
+state Platform_In_Out_Trigger { // 13
+    statusc 0x80002
+    code => state Platform_In_Out_Cycle
+    event(e, a) {
+        if (e == EventTriggered) {
+            PlatCycleOffs = PlatCycleLen - (time(PlatCycleLen) + 1)
+            accevcstate(Platform_In_Out)
+        }
+    }
+}
+
+state Platform_In_Out_Cycle { // 14
+    statusc 0x80002
+    code() {
+        sleepframe(0)
+    }
+    trans {
+        nofirst {
+            changestateifn(Platform_In_Out, time(PlatCycleLen, PlatCycleOffs))
+        }
+    }
+}
+
+state Platform_In_Out { // 15
+    statusc 0x80002
+    code() {
+        if (PlatVar15) {
+            var0 = PlatVar15
+        }
+        else {
+            var0 = 1.0
+        }
+        do (var cycle_index = 0) {
+            sounddecay(64)
+            soundpitch(rand(0x399, 0xCC))
+            soundplay([sr2wA], 0.15V)
+            playframes(0.0, 15.0)
+            soundsetup(2, voice, 6)
+            soundsetup(0, voice, 3, 0)
+            WaitFrame(PlatVar9)
+            sounddecay(64)
+            soundpitch(rand(0x399, 0xCC))
+            soundplay([sr2wA], 0.3V)
+            animframe = 16.0
+            do {
+                animframe -= 1.0
+                if (collider && abs(x - player -> x) < 0.49m) {
+                    player -> z += (vecz - PlatVar10)
+                }
+                playframe()
+            } while (animframe - 1.0 >= 0)
+            soundsetup(2, voice, 6)
+            soundsetup(0, voice, 3, 0)
+        } while ({ cycle_index += 1.0 }; cycle_index < var0)
+        if (PlatVar15) {
+            changestate(Platform_In_Out_Trigger)
+        }
+        else {
+            changestate(Platform_In_Out_Cycle)
+        }
+    }
+    trans {
+        nofirst {
+            getvert(vvec, self, 0)
+            PlatVar10 = vecz
+        }
+    }
+}
+
+state Platform_Swing_Init { // 16
+    statusc 0x80002
+    code(anim, cyclelen, cycleoffs, yaw, start_angle, end_angle, radius, active_dur, rest_dur, gem_id) {
+        if (gem_id) {
+            if (var itemoffset = gem_id >> 8; itemoffset < 32) {
+                misc = SAVEDGEMPOOL1 & (1 << itemoffset)
+            }
+            else {
+                misc = SAVEDGEMPOOL2 & (1 << (itemoffset - 32))
+            }
+            if (!misc) {
+                KillEntity()
+                return
+            }
+        }
+        PlatCycleLen = (cyclelen * 1s / 1.2s) >> 1
+        PlatCycleOffs = cycleoffs * 1s / 1.2s
+        PlatVar15 = active_dur * 1s / 1.2s
+        PlatVar14 = rest_dur * 1s / 1.2s
+        roty = yaw
+        troty = roty
+        trotz = troty
+        PlatVar12 = (degdist(start_angle, end_angle) + 360deg) % 360deg
+        PlatVar10 = degdist(0deg, start_angle)
+        PlatVar9 = PlatVar12 / (PlatCycleLen + 1)
+        PlatVar4 = -radius
+        SetVec(x, y, z)
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) {
+            zindex = 24
+        }
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
+        SelectPlatAnim(anim)
+        PlatTransFunc = 0
+        changestateif(Platform_Swing_Trigger, PlatVar15 && !entitygetstate(2))
+        PlatVar15 = 0
+        changestate(Platform_Swing)
+    }
+}
+
+state Platform_Swing_Trigger { // 17
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    event(e, a) {
+        if (e == EventTriggered) {
+            PlatCycleOffs = ((PlatCycleLen << 2) - (PlatVar14 + (time(PlatCycleLen << 1) + 1))) % (PlatCycleLen << 1)
+            soundpitch(0x1A1)
+            soundplay([Sm2iA], 0.6V)
+            accevcstate(Platform_Swing)
+        }
+    }
+    trans {
+        if (PlatVar14 >= PlatCycleLen) {
+            trotx = (PlatCycleLen >> 1) - (PlatVar14 - PlatCycleLen)
+        }
+        else {
+            trotx = PlatVar14 - (PlatCycleLen >> 1)
+        }
+        trotx = sin((trotx * PlatVar9) + (PlatVar12 >> 1), PlatVar12) + PlatVar10
+        vectransf2(vvec, vtrans, 0, 0, PlatVar4)
+        call(PlatTransFunc)
+    }
+}
+
+state Platform_Swing { // 18
+    statusc 0x80002
+    code => sub SleepPlatAnim
+    trans {
+        once {
+            var0 = 0
+            if (PlatVar15 < 0) {
+                entitysetstate(1)
+                PlatVar15 = 0
+            }
+        }
+        var prev_dir = var0
+        trotx = time(PlatCycleLen << 1, PlatCycleOffs)
+        if (trotx >= PlatCycleLen) {
+            var0 = -1
+            trotx = (PlatCycleLen << 1) - (trotx - PlatCycleLen)
+        }
+        else {
+            var0 = 1
+            trotx -= (PlatCycleLen >> 1)
+        }
+        trotx = sin((trotx * PlatVar9) + (PlatVar12 >> 1), PlatVar12) + PlatVar10
+        if (var0 != prev_dir) {
+            soundpitch(0x1A1)
+            soundplay([Sm2iA], 0.6V)
+        }
+        vectransf2(vvec, vtrans, 0, 0, PlatVar4)
+        call(PlatTransFunc)
+        changestateif(Platform_Swing_Trigger, PlatVar15 && (frametime - statetime) >= PlatVar15)
+    }
+}

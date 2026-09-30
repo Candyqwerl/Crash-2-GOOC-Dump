@@ -1,0 +1,715 @@
+#gool FutOC 13 5
+
+#include "..\\Includes\\goolstdlib.gooc"
+//gooc -c 2 -r pal "C3\C3_FutOC.gooc" "C3\Out\C3_FutOC.nsentry"
+
+#anim SKYBOX                  [Sk1zV] 1 1
+#anim CONVEYOR                [Co1rV] 1 1
+#anim VAPORIZE_SWIRL          [Cf2rV] 9 1
+#anim FENCE_2D_LOW            [Fe1rV] 13 1
+#anim FENCE_2D_HIGH           [Fh1rV] 13 1
+#anim FENCE_3D_HIGH_1         [FE2rV] 13 1
+#anim FENCE_3D_HIGH_2         [FE3rV] 27 1
+#anim FENCE_3D_HIGH_3         [FE4rV] 13 1
+#anim FENCE_3D_HIGH_4         [FE5rV] 12 1
+#anim FENCE_3D_LOW_1          [Fl2rV] 13 1
+#anim FENCE_3D_LOW_2          [Fl3rV] 27 1
+#anim FENCE_3D_LOW_3          [Fl4rV] 13 1
+#anim FENCE_3D_LOW_4          [Fl5rV] 12 1
+#anim PLAT_GREEN              [fp1rV] 1 1
+#anim PLAT_RED                [fp1rV] 1 1
+#anim SPINNER_1               [Sf1rV] 29 1
+#anim SPINNER_2               [Sf2rV] 21 1
+#anim ELEVATOR_TUBE_1         [el1rV] 1 1
+#anim ELEVATOR_TUBE_2         [el2rV] 1 1
+#anim ELEVATOR_TUBE_3         [el3rV] 1 1
+
+#sprite FUTURE_HIGHWAY[Ft5rT]
+#tex 0x808080 0 0 7 6 928 32 32 16
+#tex 0x808080 0 0 8 6 928 16 32 16
+#tex 0x808080 0 0 9 6 960 112 32 16
+
+#sprite FUTURE_FLARES[Ft5rT]
+#tex 0xEBEBEB 0 1 9 4 992 32 16 16
+#tex 0x9D9D9D 0 1 9 4 992 32 16 16
+#tex 0xEBEBEB 0 1 10 4 256 64 64 64
+#tex 0x9D9D9D 0 1 11 4 672 64 32 32
+#tex 0xFFFFFF 0 1 11 4 672 64 32 32
+#tex 0xEBEBEB 0 1 12 4 120 8 8 8
+#tex 0xEBEBEB 0 1 13 4 992 16 16 16
+#tex 0xEBEBEB 0 1 14 4 320 64 64 64
+#tex 0xEBEBEB 0 1 15 4 672 32 32 32
+
+#spawn S_CONVEYOR_1      Conveyor             // S0
+#spawn S_CONVEYOR_2      Conveyor             // S1
+#spawn S_CONVEYOR_3      Conveyor             // S2
+#spawn S_CONVEYOR_4      Conveyor             // S3
+#spawn S_CONVEYOR_5      Conveyor             // S4
+#spawn S_CONVEYOR_6      Conveyor             // S5
+#spawn S_FENCE_3D        Fence_3D_Init        // S6
+#spawn S_8               __s_8                // S7
+#spawn S_CONVEYOR_9      Conveyor             // S8
+#spawn S_CONVEYOR_10     Conveyor             // S9
+#spawn S_FENCE_2D        Fence_2D_Init        // S10  
+#spawn S_REFLECTION      Reflection           // S11
+#spawn S_TUBE_1          Elevator_Tube        // S12
+#spawn S_TUBE_2          Elevator_Tube        // S13
+#spawn S_TUBE_3          Elevator_Tube        // S14
+#spawn S_PLAT_FLIP       Flip_Plat_Init       // S15
+#spawn S_SPINNER         Spinner_Init         // S16
+#spawn S_17              __s_17               // S17
+#spawn S_18              __s_18               // S18
+#spawn S_19              __s_19               // S19
+#spawn S_SWIRL           Vaporize_Swirl       // S20
+#spawn S_HIGHWAY         Future_Highway       // S21
+#spawn S_FLARE_MASTER    Flare_Master_Init    // S22
+#spawn S_FLARE_SLAVE     Flare_Slave          // S23
+#spawn S_BOUNDS          Player_Bounds_Init   // S24
+#spawn S_SKYBOX          SkyBox               // S25
+
+var FutureVar1, CycleLen, CycleOffs, FutureVar4, FutureVar5, FutureVar6,
+    FutureVar7, FutureVar8, FutureVar9, FutureVar10, FutureVar11, FutureVar12, 
+    FutureVar13, FlareAlpha, FlareScreenAngle, RotateFlare, FutureVar17
+    
+/*----- Fence 3D -----*/  
+expr IdleDuration        = FutureVar1
+expr NearActivateAnim    = FutureVar4
+expr NearActiveAnim      = FutureVar5
+expr NearDeactivateAnim  = FutureVar6
+expr NearInactiveAnim    = FutureVar7
+expr FarActivateAnim     = FutureVar8
+expr FarActiveAnim       = FutureVar9
+expr FarDeactivateAnim   = FutureVar10
+expr FarInactiveAnim     = FutureVar11
+
+/*----- Flip Platform -----*/  
+expr FlipDuration        = FutureVar1
+
+/*----- Player Bounds -----*/  
+expr BoundsInnerMinX     = FutureVar4
+expr BoundsInnerMaxX     = FutureVar5
+expr BoundsOuterMinX     = FutureVar6
+expr BoundsOuterMaxX     = FutureVar7
+expr BoundsMaxZOffset    = FutureVar8
+
+state Conveyor {
+    stateflag 0x4004281
+    statusc 0x1000002
+    code(yaw, velo, scax, scaz) {
+        voice = 0
+        statusb = FLAG_COLLIDABLE | FLAG_INVISIBLE | FLAG_SOLID_TOP
+        SetScale(0x10 * scax / 0x1900, 0x100, 0x10 * scaz / 0x1900)
+        y += 0.3m
+        if (spawn == S_CONVEYOR_1) {
+        }
+        else if (spawn == S_CONVEYOR_2) {
+            yaw += 45deg
+        }
+        else if (spawn == S_CONVEYOR_3) {
+            yaw += 135deg
+        }
+        else if (spawn == S_CONVEYOR_4) {
+            yaw += 180deg
+        }
+        else if (spawn == S_CONVEYOR_5) {
+            yaw -= 135deg
+        }
+        else if (spawn == S_CONVEYOR_6) {
+            yaw -= 45deg
+        }
+        else if (spawn == S_CONVEYOR_10) {
+            yaw += 90deg
+        }
+        else if (spawn == S_CONVEYOR_9) {
+            yaw -= 90deg
+        }
+        yaw += 180deg
+        roty = yaw
+        troty = roty
+        speed = velo
+        setvel(speed)
+        var0 = false
+        sleepanim(0, CONVEYOR)
+    }
+    trans { 
+        unless (STATUS_FIRSTFRAME) {
+            if (voice) {
+                soundcheck(voice)
+            }
+            if (misc != -1 && distance(player, DIST_NO_Y) < 20m) {
+                soundpitch(0x22D)
+                sounddecay(0xFA)
+                soundplay([Co1rA], 1V)
+            }
+            if ((player -> statusa & FLAG_GROUNDLAND) || (player -> stateflag & 0x4080820) || frametime - statetime >= 37) {
+                var0 = false
+            }
+            if (collider && statusa & 0x4000) {
+                statetime = frametime
+            }
+            if ((statetime == frametime || var0) && !(player -> statusa & 0x1000000)) {
+                player -> x = spd(player -> x, velx * (37 - (frametime - statetime)) / 37)
+                player -> z = spd(player -> z, velz * (37 - (frametime - statetime)) / 37)
+                player -> statusa |= 0x1000000
+                var0 = true
+            }
+        }
+    }
+}
+
+state Fence_2D_Init {
+    code(yaw, o1, o2, high) {
+        roty = -yaw
+        zindex = 32
+        if (ZONEFLAGS & 0x800) {
+            spawn(FutOC, S_REFLECTION, 1)
+        }
+        changestate(Fence_2D, 1m, high)
+    }
+}
+
+state Fence_2D {
+    code(y_off, high) {
+        y += y_off
+        statusb = FLAG_COLLIDABLE
+        soundpitch(0x343)
+        soundcount(0xFFF)
+        sounddecay(0xF9)
+        soundplay([Fh1rA], 1V)
+        if (high) {
+            sleepframes(FENCE_2D_HIGH, 0.0, 12.0)
+        }
+        else {
+            sleepframes(FENCE_2D_LOW, 0.0, 12.0)
+        }
+    }
+    trans {
+        sendeventif(Event24, collider, !(player -> stateflag & 0x20) && !player -> invincible, 100.0)
+    }
+}
+
+inline sub SoundFenceVoice() {
+    if (!voice) {
+        soundpitch(3.263)
+        sounddecay(9.6s)
+        soundplay([Fh2rA], 0.6V)
+    }
+}
+
+inline sub KillFenceVoice() {
+    if (voice) {
+        soundfadet(0.1s, voice)
+        soundfadev(0V, voice, 3)
+        voice = 0
+    }
+}
+
+state Fence_3D_Init {
+    code(yaw, cyclelen, cycleoffs, idledur, o1, o2) {
+        roty = yaw
+        IdleDuration = idledur * 80s / 120s
+        CycleLen = cyclelen * 1s / 1.2s
+        CycleOffs = cycleoffs * 1s / 1.2s
+        zindex = 32
+
+        NearInactiveAnim = getanim(FENCE_3D_HIGH_1)
+        NearActivateAnim = getanim(FENCE_3D_HIGH_2)
+        NearActiveAnim = getanim(FENCE_3D_HIGH_3)
+        NearDeactivateAnim = getanim(FENCE_3D_HIGH_4)
+
+        FarInactiveAnim = getanim(FENCE_3D_LOW_1)
+        FarActivateAnim = getanim(FENCE_3D_LOW_2)
+        FarActiveAnim = getanim(FENCE_3D_LOW_3)
+        FarDeactivateAnim = getanim(FENCE_3D_LOW_4)
+        changestate(Fence_3D, 1m)
+    }
+}
+
+state Fence_3D {
+    stateflag 0x800001
+    code(y_off) {
+        y += y_off
+        sleep()
+    }
+    trans { 
+        vecx = CAMTRANSX
+        vecz = CAMTRANSZ
+        var0 = distance(vecx, self, DIST_NO_Y)
+        if (var0 < 5m) {
+            moda = 16.0 - ((var0 << 12) / 5m)
+        }
+        else {
+            moda = 0
+        }
+        var cycle_time = time(CycleLen, CycleOffs)
+        var frame = 0
+        if (cycle_time >= 0 && cycle_time <= IdleDuration) {
+            frame = cycle_time
+            KillFenceVoice()
+            statusb = FLAG_NO_CAMERA_CLIP
+            if (var0 > 25m) {
+                animseq = FarInactiveAnim
+            }
+            else {
+                animseq = NearInactiveAnim
+            }
+            animframe = (time(CycleLen, CycleOffs) << 8) % 13.0
+        }
+        else if (cycle_time >= IdleDuration && cycle_time <= IdleDuration + 27) {
+            frame = ((cycle_time - IdleDuration) * 26.0) / 27
+            scalex = abs(scalex)
+            if (var0 > 25m) {
+                animseq = FarActivateAnim
+            }
+            else {
+                animseq = NearActivateAnim
+            }
+            animframe = frame
+            if (frame >= 16.0) {
+                SoundFenceVoice()
+                statusb = FLAG_COLLIDABLE | FLAG_NO_CAMERA_CLIP
+            }
+            else {
+                KillFenceVoice()
+                statusb = FLAG_NO_CAMERA_CLIP
+            }
+        }
+        else if (cycle_time >= IdleDuration + 27 && cycle_time <= CycleLen - 12) {
+            frame = cycle_time - (IdleDuration + 27)
+            SoundFenceVoice()
+            scalex = abs(scalex)
+            statusb = FLAG_COLLIDABLE | FLAG_NO_CAMERA_CLIP
+            if (var0 > 25m) {
+                animseq = FarActiveAnim
+            }
+            else {
+                animseq = NearActiveAnim
+            }
+            animframe = ((time(CycleLen, CycleOffs) - (IdleDuration + 27)) << 8) % 13.0
+        }
+        else if (cycle_time >= CycleLen - 12 && cycle_time <= CycleLen) {
+            frame = ((cycle_time - (CycleLen - 12)) * 11.0) / 12
+            SoundFenceVoice()
+            scalex = -abs(scalex)
+            statusb = FLAG_COLLIDABLE | FLAG_NO_CAMERA_CLIP
+            if (var0 > 25m) {
+                animseq = FarDeactivateAnim
+            }
+            else {
+                animseq = NearDeactivateAnim
+            }
+            animframe = frame
+        }
+        sendeventif(Event24, collider, !(player -> stateflag & 0x20) && !player -> invincible, 100.0)
+    }
+}
+
+state Reflection {
+    stateflag 0x10001
+    statusc 0x12
+    code() { 
+        pathlen = parent -> pathlen
+        entity = parent -> entity
+        var0 = fieldval(0x33900)
+        if (var0 & 2) {
+            return
+        }
+        do {
+            if (GLOBAL_119 & 0x1000) {
+                x = parent -> x
+                y = parent -> y
+                animframe = parent -> animframe
+                animseq = parent -> animseq
+                vfx = parent -> vfx
+                rotx = parent -> rotx
+                rotz = parent -> rotz
+                scaley = parent -> scaley
+                scalez = parent -> scalez
+                stalltime = parent -> stalltime
+                vfx &= 0xFFFF00FF
+                scalex = -parent -> scalex
+                zindex = parent -> zindex + GLOBAL_197
+                roty = 90deg - degdist(90deg, parent -> roty)
+                z = GLOBAL_93 - (parent -> z - GLOBAL_93)
+                statusb = parent -> statusb & 0x100000
+                playframe()
+            }
+            else {
+                playnull()
+            }
+        } while (1)
+    }
+}
+
+state Elevator_Tube {
+    statusc 0
+    code(yaw) {
+        roty = yaw
+        zindex = 100
+        if (spawn == S_TUBE_2) {
+            sleepanim(0, ELEVATOR_TUBE_3)
+        }
+        else if (spawn == S_TUBE_3) {
+            sleepanim(0, ELEVATOR_TUBE_2)
+        }
+        else if (spawn == S_TUBE_1) {
+            sleepanim(0, ELEVATOR_TUBE_1)
+        }
+    }
+}
+
+state Flip_Plat_Init {
+    statusc 0
+    code(cyclelen, cycleoffs, flipdur) {
+        CycleLen = cyclelen * 1s / 1.2s
+        CycleOffs = cycleoffs * 1s / 1.2s
+        FlipDuration = flipdur * 120s / 120s
+        rotz = 90deg
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
+        if (ZONEFLAGS & 0x800 && vfx == 0) {
+            spawn(FutOC, S_REFLECTION, 1)
+        }
+        changestate(Flip_Plat)
+    }
+}
+
+state Flip_Plat {
+    stateflag 0x4004081
+    code() {
+        sleep()
+    }
+    trans {
+        statusb |= FLAG_SOLID_TOP
+        if (player -> invincible == 5) {
+            rotx = 0
+            setanim(PLAT_GREEN)
+            return
+        }
+        var cycle_time = time(CycleLen, CycleOffs)
+        var phase = 0
+        if (cycle_time >= 0 && cycle_time <= FlipDuration) {
+            phase = cycle_time
+            statusb &= ~FLAG_SOLID_TOP
+            rotx = 90deg
+            setanim(PLAT_RED)
+        }
+        else if (cycle_time >= FlipDuration && cycle_time <= FlipDuration + 15) {
+            phase = cycle_time - FlipDuration
+            var angle = 90deg + (phase * -90deg) / ((FlipDuration + 15) - FlipDuration)
+            if (phase <= 1) {
+                soundpitch(3.262)
+                soundplay([Fp2RA], 1.0V)
+            }
+            rotx = sin(angle, 90deg)
+            setanim(PLAT_RED)
+        }
+        else if (cycle_time >= FlipDuration + 15 && cycle_time <= CycleLen - 40) {
+            phase = cycle_time - FlipDuration + 15
+            rotx = 0
+            setanim(PLAT_GREEN)
+        }
+        else if (cycle_time >= CycleLen - 40 && cycle_time <= CycleLen - 15) {
+            phase = cycle_time - CycleLen - 40
+            var angle = phase * 1199.75deg / ((CycleLen - 15) - CycleLen - 40)
+            var amplitude = phase * 15deg / ((CycleLen - 15) - CycleLen - 40)
+            if (phase <= 1) {
+                soundpitch(2.540)
+                soundplay([Fp1rA], 1.0V)
+            }
+            rotx = sin(angle) * amplitude >> 12
+            if (time(2)) {
+                setanim(PLAT_GREEN)
+            }
+            else {
+                setanim(PLAT_RED)
+            }
+        }
+        else if (cycle_time >= CycleLen - 15 && cycle_time <= CycleLen) {
+            phase = cycle_time - CycleLen - 15
+            var angle = (phase << 10) / (CycleLen - (CycleLen - 15))
+            if (phase <= 1) {
+                soundpitch(3.262)
+                soundplay([Fp2RA], 1.0V)
+            }
+            rotx = sin(angle, 90deg)
+            setanim(PLAT_RED)
+        }
+    }
+}
+
+state Spinner_Init {
+    stateflag 0x4004081
+    statusc 0x1000000
+    code(yvel) {
+        zindex = fieldval(ENTITY_FIELD_ZINDEX)
+        if (!zindex) zindex = 32;
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_TOP | FLAG_NO_CAMERA_CLIP
+        vely = yvel
+        if (ZONEFLAGS & 0x800) {
+            spawn(FutOC, S_REFLECTION, 1)
+        }
+        changestate(Spinner)
+    }
+}
+
+state Spinner {
+    stateflag 0x4004081
+    statusc 0
+    code() {
+        sleepframes(SPINNER_1, 0.0, 28.0)
+    }
+    trans {
+        if (statusa & 0x4000) {
+            sendevent(Event4, collider, vely)
+            changestateif(Spinner_Touched, eventaccepted)
+        }
+        SpinnerFloat()
+    }
+}
+
+state Spinner_Touched {
+    stateflag 0x4004081
+    statusc 0x1000000
+    code() {
+        soundpitch(0x1D0)
+        sounddecay(0xC8)
+        soundplay([Sf1rA], 1V)
+        playframes(SPINNER_2, 0.0, 20.0)
+        changestate(Spinner)
+    }
+    trans {
+        player -> x = seek(player -> x, x, spd(10m))
+        player -> z = seek(player -> z, z, spd(10m))
+        if (frametime - statetime >= 0.1s) {
+            settrans(SpinnerFloat)
+        }
+        SpinnerFloat()
+    }
+}
+
+sub SpinnerFloat() {
+    y = groundy + (cos(frametime << 6) << 2)
+}
+
+state Vaporize_Swirl {
+    statusc 0
+    code(vert) {
+        vfx = (vfx & 0xFFFFFF00) | 0x2
+        zindex = 500
+        statusb = FLAG_NO_CAMERA_CLIP
+        getvert(vtrans, creator, vert)
+        spawn(FutOC, S_FLARE_MASTER, 1)
+        moda = 11.2
+        playanim(0, VAPORIZE_SWIRL)
+        moda = 6.4
+        playanim(1, VAPORIZE_SWIRL, 1)
+        moda = 0.0
+        playanim(2, VAPORIZE_SWIRL, 1)
+        playanim(2, VAPORIZE_SWIRL, 1)
+        playanim(3, VAPORIZE_SWIRL, 1)
+        playanim(4, VAPORIZE_SWIRL, 1)
+        playanim(5, VAPORIZE_SWIRL, 1)
+        moda = 3.2
+        playanim(6, VAPORIZE_SWIRL, 1)
+        moda = 6.4
+        playanim(7, VAPORIZE_SWIRL, 1)
+        moda = 9.6
+        playanim(7, VAPORIZE_SWIRL, 1)
+        moda = 12.8
+        playanim(8, VAPORIZE_SWIRL, 1)
+        playnull(10)
+    }
+}
+
+state Flare_FX_Master_Init {
+    code() {
+        getvert(vtrans, player, 0)
+        FutureVar11 = 0
+        FutureVar12 = 0
+        FutureVar13 = 0
+        FutureVar17 = 0
+        vfx = (vfx & 0xFFFFFF00) | 0x6
+        SetScale(0xA3, 0xA2, 0x1000)
+        FlareAlpha = 0
+        SetRot(0deg)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x100, -0x300, 0x000)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x200, -0x200, 0x100)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x300, 0x200, 0x100)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x400, 0x233, 0x400)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x500, 0x600, 0x500)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x600, 0x800, 0x600)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x700, 0xB00, 0x700)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x800, 0xC00, 0x800)
+        spawn(FutOC, S_FLARE_SLAVE, 1, 0x000, 0x000, 0x200)
+        changestate(Flare_Master)
+    }
+}
+
+state Flare_Master {
+    code() {
+        sleepnull()
+    }
+    trans { 
+        getvert(vtrans, player, 0)
+        if (frametime - statetime >= 12) {
+            FlareAlpha = seek(FlareAlpha, 0, 2.56)
+        }
+        else {
+            FlareAlpha = seek(FlareAlpha, 16.0, 2.56)
+        }
+        if (FlareAlpha) {
+            moveto2d(null, 0, 0)
+            FlareScreenAngle = atan(y, x)
+            velx = (((-x) << 1) + (((-x) << 1) >> 2)) / 12
+            vely = (((-y) << 1) + (((-y) << 1) >> 2)) / 12
+        }
+    }
+}
+
+state Flare_Slave {
+    __transargs
+    code(type, offset, frame) {
+        sleepframe(frame)
+    }
+    trans { 
+        if (STATUS_FIRSTFRAME) {
+            zindex = 4000
+            setanim(FUTURE_FLARES, -1.0)
+            vfx = (vfx & 0xFFFFFF00) | 0x6
+            RotateFlare = 0
+            if (type == 0) {
+                scalex = 4.055
+                scaley = 4.055
+            }
+            else if (type == 1.0) {
+                scalex = 1.015
+                scaley = 1.015
+                RotateFlare = 1
+            }
+            else if (type == 2.0) {
+                scalex = 1.015
+                scaley = 1.015
+                RotateFlare = 1
+            }
+            else if (type == 3.0) {
+                scalex = 2.03
+                scaley = 2.03
+            }
+            else if (type == 4.0) {
+                scalex = 1.015
+                scaley = 1.015
+            }
+            else if (type == 5.0) {
+                scalex = 0.505
+                scaley = 0.505
+            }
+            else if (type == 6.0) {
+                scalex = 1.015
+                scaley = 1.015
+            }
+            else if (type == 7.0) {
+                scalex = 4.055
+                scaley = 4.055
+            }
+            else if (type == 8.0) {
+                scalex = 2.03
+                scaley = 2.03
+            }
+        }
+        FlareAlpha = creator -> FlareAlpha
+        if (FlareAlpha) {
+            x = creator -> x
+            y = creator -> y
+            z = creator -> z
+            velx = creator -> velx
+            vely = creator -> vely
+            velz = creator -> velz
+            FlareScreenAngle = creator -> FlareScreenAngle
+            x += (velx * offset) >> 8
+            y += (vely * offset) >> 8
+            if (RotateFlare) {
+                rotz = FlareScreenAngle + 45deg
+            }
+            moda = 16.0 - FlareAlpha
+            statusb &= ~FLAG_INVISIBLE
+        }
+        else {
+            statusb |= FLAG_INVISIBLE
+        }
+    }
+}
+
+state Future_Highway {
+    statusc 0
+    code() {
+        setanim(FUTURE_HIGHWAY, rand(3) << 8)
+        do {
+            do (var pathpoint = 0) {
+                calcpath(pathpoint)
+                playframe()
+            } while ({ pathpoint += 1.0 }; pathpoint < pathlen)
+        } while (1)
+    }
+}
+
+state Player_Bounds_Init {
+    statusc 0
+    code(imin_x, imax_x, omin_x, omax_x, max_z, z_off) {
+        BoundsInnerMinX = imin_x
+        BoundsInnerMaxX = imax_x
+        BoundsOuterMinX = omin_x
+        BoundsOuterMaxX = omax_x
+        BoundsMaxZOffset = max_z
+        z += z_off
+        changestate(Player_Bounds)
+    }
+}
+
+state Player_Bounds {
+    statusc 0
+    code() {
+        sleepnull()
+    }
+    trans { 
+        vecx = player -> x - x
+        if (vecx >= BoundsOuterMinX && vecx <= BoundsOuterMaxX) {
+            if (vecx >= BoundsInnerMinX && vecx <= BoundsInnerMaxX) {
+                player -> z = z
+            }
+            else {
+                if (vecx >= 0) {
+                    vecx -= BoundsInnerMaxX
+                    var0 = (((vecx >> 8) * (BoundsMaxZOffset >> 8)) / ((BoundsOuterMaxX - BoundsInnerMaxX) >> 8)) << 8
+                }
+                else {
+                    vecx = BoundsInnerMinX - vecx
+                    var0 = (((vecx >> 8) * (BoundsMaxZOffset >> 8)) / ((BoundsInnerMinX - BoundsOuterMinX) >> 8)) << 8
+                }
+                vecz = player -> z - z
+                if (vecz >= 0) {
+                    if (var0 < vecz) {
+                        player -> z = z + var0
+                    }
+                }
+                else if (vecz < -var0) {
+                    player -> z = z - var0
+                }
+            }
+        }
+    }
+}
+
+state SkyBox {
+    stateflag 0x10001
+    statusc 0
+    code() {
+        statusb = FLAG_NO_CAMERA_CLIP
+        SetScale(0.1S)
+        sleepanim(0, SKYBOX)
+    }
+    trans {
+        x = CAMTRANSX
+        y = CAMTRANSY
+        z = CAMTRANSZ
+    }
+}

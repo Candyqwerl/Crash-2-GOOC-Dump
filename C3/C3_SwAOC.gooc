@@ -1,0 +1,408 @@
+#gool SwAOC 38 3
+
+#include "..\\Includes\\goolstdlib.gooc"
+//gooc -c 2 -r pal "C3\C3_SwAOC.gooc" "C3\Out\C3_SwAOC.nsentry"
+
+#anim SWITCH_BLOCK       [SlBiV] 1 1
+#anim SWITCH_ASS_PULL    [SA1iV] 28 1
+#anim SWITCH_ASS_LOOK    [SA2iV] 31 1
+#anim SWITCH_ASS_HEAD    [SA3iV] 1 1
+#anim SWITCH_ASS_BODY    [SA4iV] 1 1
+#anim SWITCH_LEVER       [SwBiV] 24 1
+
+#spawn S_SWITCH_ASS      Switch_Ass_Init
+#spawn S_SPAWNER         Block_Spawner_Init
+#spawn S_LEVER           Lever_Init
+#spawn S_BLOCK           Switch_Block
+#spawn S_HEAD            Switch_Ass_Head
+
+var SwitchVar1, SwitchVar2, SwitchVar3, Block_ID_1, Block_ID_2, BlockCos, BlockSin, BlockNewY, BlockVar6,
+    BlockColor, BlockVar8, BlockVar9, BlockVar10, BlockZindexDelta
+
+state Switch_Ass_Init { // 0
+    statusc 0
+    code(lever_id, interval) {
+        SwitchVar1 = lever_id
+        SwitchVar2 = interval * 1s / 1.2s
+        SwitchVar3 = roty
+        zindex = 26
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_SIDES | 0x40000000
+        playanim(0, SWITCH_ASS_PULL)
+        if (!(!(player -> stateflag \ 0x20) && !player -> invincible) || player -> z - z <= 2.5m) {
+            changestate(Switch_Ass_Body)
+        }
+        else {
+            changestate(Switch_Ass_Pull)
+        }
+    }
+}
+
+state Switch_Ass_Pull { // 1
+    statusc 0
+    code() {
+        do {
+            changestateif(Switch_Ass_Body, player -> z - z <= 2.5m || !(!(player -> stateflag \ 0x20) && !player -> invincible))
+            interrupter = objectget(SwitchVar1)
+            sendevent(EventTriggered, interrupter)
+            playframes(SWITCH_ASS_PULL, 0.0, 27.0)
+            wait(0.3s)
+            playframes(SWITCH_ASS_LOOK, 0.0, 30.0)
+            statetime = frametime
+            do {
+                playanim(0, SWITCH_ASS_PULL)
+                changestateif(Switch_Ass_Body, player -> z - z <= 2.5m || !(!(player -> stateflag \ 0x20) && !player -> invincible))
+            } until(frametime - statetime >= SwitchVar2)
+        } while (1)
+    }
+    event(e, a) {
+        accevcstate(Switch_Ass_Squash, e == EventJumpedOn
+            || e == EventSlamHit
+            || e == EventHit
+            || e == EventFling)
+        accevcstate(Switch_Ass_Fling, e == EventSpinHit
+            || e == EventSlideHit
+            || e == EventHitInvincible)
+    }
+}
+
+state Switch_Ass_Body { // 2
+    statusc 0
+    code() {
+        spawn(SwAOC, S_HEAD, 1)
+        sleepanim(0, SWITCH_ASS_BODY)
+    }
+    event(e, a) {
+        accevcstate(Switch_Ass_Squash, e == EventJumpedOn
+            || e == EventSlamHit
+            || e == EventHit
+            || e == EventFling)
+        accevcstate(Switch_Ass_Fling, e == EventSpinHit
+            || e == EventSlideHit
+            || e == EventHitInvincible)
+        accevcstate(Switch_Ass_Pull, e == EventTriggered)
+    }
+    trans {
+        sendevent(EventHit, collider, 100.0)
+        changestateif(Switch_Ass_Squash, eventaccepted, 0)
+    }
+}
+
+state Switch_Ass_Head { // 3
+    statusc 0
+    code() {
+        sleepanim(0, SWITCH_ASS_HEAD)
+    }
+    trans {
+        once {
+            zindex = creator -> zindex
+            SwitchVar3 = creator -> SwitchVar3
+            rotx = creator -> rotx
+            roty = creator -> roty
+            rotz = creator -> rotz
+        }
+        getvert(vtrans, parent, 0)
+        if (player -> z - parent -> z > 2.5m && !(player -> stateflag \ 0x20) && !player -> invincible) {
+            changestateif(Switch_Ass_Triggered, abs(degdist(0, roty)) <= 1deg && abs(degdist(0, rotx)) <= 1deg)
+            vecx = 0
+            vecy = 0
+        }
+        else {
+            vecx = atan2_3d(self, player -> trans) - 25deg
+            vecy = atan2(player -> trans)
+        }
+        vecy = degdist(roty, vecy) >> 2
+        v0 = degdist(SwitchVar3, vecy + roty)
+        if (v0 > 80deg) {
+            v0 = 80deg
+        }
+        if (v0 < -80deg) {
+            v0 = -80deg
+        }
+        vecy = degdist(roty, v0 + SwitchVar3)
+        if (vecy >= 0deg) {
+            if (vecy > 4.8deg) {
+                vecy = 4.8deg
+            }
+        }
+        else if (vecy < -4.8deg) {
+            vecy = -4.8deg
+        }
+        roty = (roty + vecy) % 360deg
+        rotz = (degdist(roty, SwitchVar3) >> 2) + roty
+        rotx = degseek(rotx, vecx, 90deg)
+    }
+}
+
+state Switch_Ass_Triggered { // 4
+    statusc 0
+    code() {
+        sendevent(EventTriggered, parent)
+        playanim(0, SWITCH_ASS_HEAD)
+    }
+}
+
+state Lever_Init { // 5
+    stateflag 0x201
+    statusc 0
+    code(id1, id2) {
+        Block_ID_1 = id1
+        Block_ID_2 = id2
+        zindex = 26
+        changestate(Lever)
+    }
+}
+
+state Lever { // 6
+    stateflag 0x4000201
+    statusc 0
+    code() {
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
+        sleepanim(0, SWITCH_LEVER)
+    }
+    event(e, a) {
+        sendeventif(Event21, interrupter, e == EventSlamHit, 15.495m)
+        accevcstate(Lever_Pulled, e == EventJumpedOn
+            || e == EventSlamHit
+            || e == EventSpinHit
+            || e == EventSlideHit)
+        accevcstate(Lever_Pulled, (!(player -> stateflag \ 0x20) && !player -> invincible)
+            && (e == EventTriggered || e == EventHit || e == EventFling))
+    }
+}
+
+state Lever_Pulled { // 7
+    stateflag 0x4000201
+    statusc 0
+    code() {
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL
+        setanim(SWITCH_LEVER, -1.0)
+        do {
+            animframe += 1.0
+            if (animseq == getanim(SWITCH_LEVER) && animframe == 5.0) {
+                soundpitch(3.263)
+                soundsetup(6, self, 8)
+                soundplay([Sw11A], 1.8V)
+            }
+            playframe()
+        } while (animframe + 1.0 <= 10.0)
+        if (Block_ID_1) {
+            interrupter = objectget(Block_ID_1)
+            sendevent(EventTriggered, interrupter)
+        }
+        if (Block_ID_2) {
+            interrupter = objectget(Block_ID_2)
+            sendevent(EventTriggered, interrupter)
+        }
+        if (animseq != getanim(SWITCH_LEVER)) {
+            setanim(SWITCH_LEVER, -1.0)
+        }
+        while (animframe < 23.0) {
+            playframe(animframe + 1.0)
+        }
+        changestate(Lever)
+    }
+    event(e, a) {
+        if (e == EventSlamHit || e == EventJumpedOn) {
+            sendevent(Event21, interrupter, 15.495m)
+            rejevcstate(Lever_Pulled, eventaccepted)
+        }
+    }
+}
+
+state Block_Spawner_Init { // 8
+    stateflag 0x4004081
+    statusc 0x80012
+    code(yaw, speed, zdxa, zdxb, coll) {
+        roty = yaw
+        SwitchVar1 = speed / 1s
+        zindex = zdxa
+        BlockVar10 = 0
+        BlockZindexDelta = zdxb - zdxa
+        SwitchVar3 = coll
+        statusb = 0
+        changestate(Block_Spawner)
+    }
+}
+
+state Block_Spawner { // 9
+    stateflag 0x4004081
+    statusc 0x80012
+    code() {
+        sleepnull()
+    }
+    event(e, a) {
+        accevcstate(Block_Spawner_Triggered, e == EventTriggered)
+    }
+}
+
+state Block_Spawner_Triggered { // 10
+    stateflag 0x4004081
+    statusc 0x80012
+    code() {
+        spawn(SwAOC, S_BLOCK, 1)
+        do {
+            playnull()
+        } until(frametime - statetime >= 2.5s)
+        changestate(Block_Spawner)
+    }
+}
+
+state Switch_Block { // 11
+    stateflag 0x4004081
+    statusc 0x80012
+    code() {
+        CopyParentPath()
+        SwitchVar1 = parent -> SwitchVar1
+        roty = parent -> roty
+        SwitchVar3 = parent -> SwitchVar3
+        pathprog = 0
+        calcpath(pathprog)
+        y += 10m
+        vely = 0
+        statusb = FLAG_COLLIDABLE | FLAG_SOLID_ALL | FLAG_CARRY_COLLIDER
+        BlockCos = cos(-roty)
+        BlockSin = sin(-roty)
+        changestate(Switch_Block_Fall)
+    }
+}
+
+state Switch_Block_Fall { // 12
+    stateflag 0x4004081
+    statusc 0x80012
+    code() {
+        sleepanim(0, SWITCH_BLOCK)
+    }
+    trans {
+        once {
+            SwitchVar2 = 0
+            zindex = 26
+            soundpitch(3.263)
+            soundcount(0xFFFF)
+            soundsetup(6, self, 8)
+            soundplay([Sl1iA], 0.7V)
+        }
+        if (collider && y > player -> y) {
+            sendevent(EventCrush, collider, 100.0)
+            if (eventaccepted) {
+                statusb = 0
+            }
+        }
+        changestateif(Switch_Block_Slide, SwitchVar2 >= 3)
+        pathprog += SwitchVar1
+        changestateif(Kill, pathprog >= pathlen)
+        calcpath(pathprog, vvec)
+        x = vecx
+        z = vecz
+        groundy = vecy
+        vely -= 32.0
+        y += vely
+        if (y < groundy) {
+            SwitchVar2 += 1
+            if (vely < -160.0) {
+                if (SHAKEY == 0) {
+                    SHAKEY = 5.0
+                }
+                SoundPitchDefault()
+                soundsetup(6, self, 8)
+                soundplay([Sl2iA], 0.75V)
+            }
+            y = groundy
+            vely = -vely >> 2
+        }
+        if (SwitchVar3) {
+            interrupter = getvalideventobj(EventHit, 0b10000)
+            if (interrupter) {
+                sendeventif(EventHit, interrupter, distance(interrupter) < 3m, 100.0)
+            }
+            else {
+                eventaccepted = 0
+            }
+        }
+    }
+}
+
+state Switch_Block_Slide { // 13
+    stateflag 0x4004081
+    statusc 0x80012
+    code() {
+        sleepanim(0, SWITCH_BLOCK)
+    }
+    trans {
+        once {
+            statusb |= 0x80000000
+            vfx = (vfx & 0xFFFF00FF) | 0xA00
+            BlockNewY = y - 0.2m
+            BlockVar6 = 1
+            BlockColor = 0x7F7F7F
+            BlockVar8 = 0
+            BlockVar9 = 0
+            BlockVar10 = creator -> BlockVar10
+            BlockZindexDelta = creator -> BlockZindexDelta
+        }
+        pathprog += SwitchVar1
+        changestateif(Kill, pathprog >= pathlen)
+        calcpath(pathprog)
+        vecz = (((player -> z - z >> 8) * BlockCos) - ((player -> x - x >> 8) * BlockSin)) >> 4
+        zindex = creator -> zindex
+        if (vecz <= -1.4m && player -> y <= y + 1.9m) {
+            statusb |= 0x40000000
+        }
+        else {
+            statusb &= ~0x40000000
+        }
+        if (SwitchVar3) {
+            interrupter = getvalideventobj(EventHit, 0b10000)
+            if (interrupter) {
+                sendeventif(EventHit, interrupter, distance(interrupter) < 3m, 100.0)
+            }
+            else {
+                eventaccepted = 0
+            }
+        }
+    }
+}
+
+state Switch_Ass_Fling { // 14
+    stateflag 0x30
+    statusc 0x32
+    code(h) {
+        EnemyFlingCombo(h)
+        EnemyFlingSetDir()
+        EnemyFlingSetVel(3m)
+        EnemyFlingWaitScale()
+    }
+    trans {
+        EnemyFlingTrans(2m, EventFling)
+    }
+}
+
+state Switch_Ass_Squash { // 15
+    stateflag 0x23
+    statusc 0x32
+    code(h) {
+        entitysetspawn(0)
+        sendevent(Event16, player, h)
+        EnemyDieClearFlags()
+        playframe()
+        spawn(9, 4, 1, getins(SetParticleColor), 1)
+        playframe()
+    }
+}
+
+sub SetParticleColor() {
+    vfx = (vfx & 0xFFFF00FF) | 3.0
+    if (var r = rand(3); r == 0) {
+        SetColor1(0x05, 0xBD, 0xBE)
+    }
+    else if (r == 1) {
+        SetColor1(0x0D, 0x4C, 0x4C)
+    }
+    else if (r == 2) {
+        SetColor1(0xE7, 0x85, 0x81)
+    }
+}
+
+state Kill { // 16
+    statusc 0
+    code() { }
+}
