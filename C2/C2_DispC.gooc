@@ -1030,7 +1030,7 @@ state Pause_Menu_Options { // 15
                         GLOBAL_32 = GLOBAL_32 ^ 2
                     }
                     else if (stalltime == vecy) {
-                        nop() //changestate(Pause_Menu_Calibrate)
+                        changestate(Pause_Menu_Calibrate)
                     }
                     else {
                         changestateif(Pause_Menu_Root, stalltime == field_61 - 1.0)
@@ -1225,7 +1225,7 @@ state Pause_Menu_Calibrate { // 17
             var joy_max_y = -1
             var joy_center_x = 0.5
             var joy_center_y = 0.5
-            var s9 = 0
+            var step = 0.0
             do {
                 if (var lang = GLOBAL_151; lang == LANG_DE) {
                     setanim(TEXT)
@@ -1248,12 +1248,12 @@ state Pause_Menu_Calibrate { // 17
                     playframe(107.0)
                 }
                 if (buttonpress(PAD_SELECT)) {
-                    GLOBAL_152 = 0x80
-                    GLOBAL_153 = 0x80
-                    GLOBAL_154 = 0
-                    GLOBAL_155 = 0
-                    GLOBAL_156 = 0xFF
-                    GLOBAL_157 = 0xFF
+                    GLOBAL_152 = 0.5
+                    GLOBAL_153 = 0.5
+                    GLOBAL_154 = 0.0
+                    GLOBAL_155 = 0.0
+                    GLOBAL_156 = 1.0
+                    GLOBAL_157 = 1.0
                     y = troty
                     if (var lang = GLOBAL_151; lang == LANG_DE) {
                         setanim(TEXT)
@@ -1271,16 +1271,15 @@ state Pause_Menu_Calibrate { // 17
                         setanim(TEXT)
                         playframe(111.0, 1.7s)
                     }
+                    goto finish;
                 }
-                y = troty
-                x = trotx
-                statusb = FLAG_NO_CAMERA_CLIP | FLAG_STRING_CENTER
-                changestate(Pause_Menu_Root)
+
             } until (buttonpress(PAD_X))
-            while (s9 < 4.0) {
+            unless (miscfunc(joy_center_x, player, 20, 12) >= 3.32s) goto finish;
+            while (step < 4.0) {
                 playnull()
                 do {
-                    if (!s9) {
+                    if (step == 0.0) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(112.0)
@@ -1302,7 +1301,7 @@ state Pause_Menu_Calibrate { // 17
                             playframe(116.0)
                         }
                     }
-                    else if (s9 == LANG_ES) {
+                    else if (step == 1.0) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(117.0)
@@ -1324,7 +1323,7 @@ state Pause_Menu_Calibrate { // 17
                             playframe(121.0)
                         }
                     }
-                    else if (s9 == 2.0) {
+                    else if (step == 2.0) {
                         if (var lang = GLOBAL_151; lang == LANG_DE) {
                             setanim(TEXT)
                             playframe(122.0)
@@ -1369,11 +1368,12 @@ state Pause_Menu_Calibrate { // 17
                         }
                     }
                 } until (buttonpress(PAD_X))
+                unless (miscfunc(joy_center_x, player, 20, 12) >= 3.32s) goto finish;
                 if (vecx < joy_min_x) joy_min_x = vecx;
                 if (vecy < joy_min_y) joy_min_y = vecy;
                 if (vecx > joy_max_x) joy_max_x = vecx;
                 if (vecy > joy_max_y) joy_max_y = vecy;
-                s9 += 1.0
+                step += 1.0
             }
             y = troty
             if (joy_max_x - joy_center_x > 64 && joy_center_x - joy_min_x > 64 && joy_max_y - joy_center_y > 64 && joy_center_y - joy_min_y > 64) {
@@ -1425,6 +1425,7 @@ state Pause_Menu_Calibrate { // 17
                 playframe(141.0, 1.7s)
             }
         }
+        finish:
         y = troty
         x = trotx
         statusb = FLAG_STRING_CENTER | FLAG_NO_CAMERA_CLIP

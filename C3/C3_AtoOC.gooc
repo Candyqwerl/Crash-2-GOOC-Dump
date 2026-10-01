@@ -791,66 +791,64 @@ state Fan_Current { // 19
         soundplay([FaneA], 0.3V)
         soundsetup(50, voice, 6)
         soundsetup(9.6, voice, 2, 1)
+        start :
+        v0 = false
+        var path_start_x, path_start_y, path_start_z, path_end_x, path_end_y, path_end_z
+        save (vecx, vecy, vecz) {
+            calcpath(pathlen - 1.0, vvec)
+            path_end_x = vecx
+            path_end_y = vecy
+            path_end_z = vecz
+            calcpath(0, vvec)
+            path_start_x = vecx
+            path_start_y = vecy
+            path_start_z = vecz
+        }
+        if ((vely > 0m && path_start_y < path_end_y) || (vely <= 0m && path_start_y > path_end_y)) {
+            calcpath(0)
+        }
+        else {
+            calcpath(pathlen - 1.0)
+        }
         do {
-            v0 = false
-            var path_start_x, path_start_y, path_start_z, path_end_x, path_end_y, path_end_z
-            save (vecx, vecy, vecz) {
-                calcpath(pathlen - 1.0, vvec)
-                path_end_x = vecx
-                path_end_y = vecy
-                path_end_z = vecz
-                calcpath(0, vvec)
-                path_start_x = vecx
-                path_start_y = vecy
-                path_start_z = vecz
-            }
-            if ((vely > 0m && path_start_y < path_end_y) || (vely <= 0m && path_start_y > path_end_y)) {
-                calcpath(0)
-            }
-            else {
-                calcpath(pathlen - 1.0)
-            }
-            do {
-                if (player -> y < path_start_y && player -> y > path_end_y && player -> x > path_start_x - pathdist && player -> x < path_start_x + pathdist) {
-                    sendevent(Event50, player, velx, vely, velz)
-                    if (!PlayerInside) {
-                        PlayerInside = true
-                        MidY = path_start_y + path_end_y >> 1
-                        var old_velocity = vely
-                        if (player -> y > MidY) {
-                            vely = -abs(vely)
+            if (player -> y < path_start_y && player -> y > path_end_y && player -> x > path_start_x - pathdist && player -> x < path_start_x + pathdist) {
+                sendevent(Event50, player, velx, vely, velz)
+                if (!PlayerInside) {
+                    PlayerInside = true
+                    MidY = path_start_y + path_end_y >> 1
+                    var old_velocity = vely
+                    if (player -> y > MidY) {
+                        vely = -abs(vely)
+                    }
+                    else {
+                        vely = abs(vely)
+                    }
+                    unless ((vely ^ old_velocity) >= 0) {
+                        if (obj) {
+                            interrupter = objectget(obj)
+                            sendevent(EventTriggered, interrupter)
+                            interrupter = objectget(obj + 1.0)
+                            sendevent(EventTriggered, interrupter)
+                            statetime = frametime
+                            settrans(UpdateFanPitch)
+                            soundsetup(50, voice, 6)
+                            soundsetup(0, voice, 2, 0)
+                            soundsetup(0x4CC, voice, 2, 1)
                         }
-                        else {
-                            vely = abs(vely)
-                        }
-                        unless ((vely ^ old_velocity) >= 0) {
-                            if (obj) {
-                                interrupter = objectget(obj)
-                                sendevent(EventTriggered, interrupter)
-                                interrupter = objectget(obj + 1.0)
-                                sendevent(EventTriggered, interrupter)
-                                statetime = frametime
-                                settrans(UpdateFanPitch)
-                                soundsetup(50, voice, 6)
-                                soundsetup(0, voice, 2, 0)
-                                soundsetup(0x4CC, voice, 2, 1)
-                            }
-                            v0 = true
-                        }
+                        v0 = true
                     }
                 }
-                else {
-                    PlayerInside = false
-                }
-                if (!time(0.4s) && FRAMETIME < 34) {
-                    spawn(AtoOC, S_BUBBLES, 1, velx, vely, velz, abs(path_start_y - path_end_y), pathdist - 0.4m)
-                }
-                if (v0 == false) {
-                    break
-                }
-                playnull()
-            } while (1)
-            playframe()
+            }
+            else {
+                PlayerInside = false
+            }
+            if (!time(0.4s) && FRAMETIME < 34) {
+                spawn(AtoOC, S_BUBBLES, 1, velx, vely, velz, abs(path_start_y - path_end_y), pathdist - 0.4m)
+            }
+            if (var0) {
+                goto start;
+            }
+            playnull()
         } while (1)
     }
     event(e, a) {
@@ -936,8 +934,8 @@ state Tank_Collision { // 22
                 v0 = true
             }
             else if (v0 && field_61) {
-                player -> x = x + ((player -> x - x >> 8) * (radius >> 8) / (stalltime >> 8)) << 8
-                player -> y = y + ((player -> y - y >> 8) * (radius >> 8) / (stalltime >> 8)) << 8
+                player -> x = x + (((player -> x - x >> 8) * (radius >> 8) / (stalltime >> 8)) << 8)
+                player -> y = y + (((player -> y - y >> 8) * (radius >> 8) / (stalltime >> 8)) << 8)
             }
             else if (stalltime < radius + 1m && field_61) {
                 field_62 = -1

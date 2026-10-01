@@ -77,17 +77,15 @@ state Wave_Pusher_Push {
         do {
             animframe += 1.0
             if (player -> stateflag \ 0x8000000) {
-                v0 = 1
-                break
+                goto exit;
             }
             playframe()
         } while (animframe + 1.0 <= 12.0)
-        unless (v0) {
-            soundsetup(2, voice, 6)
-            soundsetup(0, voice, 3, 0)
-            tpc = 0
-            WaitFrame(ResetTime)
-        }
+        soundsetup(2, voice, 6)
+        soundsetup(0, voice, 3, 0)
+        tpc = 0
+        WaitFrame(ResetTime)
+        exit:
         tpc = 0
         if (animframe) {
             sounddecay(2.6s)

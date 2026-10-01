@@ -66,21 +66,18 @@ sub Taz_Jump(point) {
                 sendevent(Event15, creator, 10.0)
                 if (v0 == 0) {
                     Taz_Fall(0)
-                    playanim(0, TAZ_JUMP_1)
-                    misc = 1
-                    break
+                    goto exit;
                 }
             }
             playframe((i - 1.0) * 18 / 18 + 8.0)
         } while ({ i += 1.0 }; i <= 18.0)
     }
-    unless (misc) {
-        SoundPitchDefault(0.43)
-        sounddecay(10.22s)
-        soundplay([TLatA], 0.25V)
-        playframes(TAZ_JUMP_1, 26.0, 32.0)
-        playanim(0, TAZ_JUMP_1)
-    }
+    SoundPitchDefault(0.43)
+    sounddecay(10.22s)
+    soundplay([TLatA], 0.25V)
+    playframes(TAZ_JUMP_1, 26.0, 32.0)
+    exit:
+    playanim(0, TAZ_JUMP_1)
 }
 
 sub UpdateHealth() {

@@ -590,7 +590,7 @@ state Moe_Attack_Player { // 8
                                 playframe()
                             }
                             setanim(MOE_RAISE_SWORD, 0)
-                            break
+                            goto exit;
                         }
                         playframe()
                     } while (animframe + 1.0 <= 16.0)
@@ -603,22 +603,22 @@ state Moe_Attack_Player { // 8
                             if (animframe >= 25.0 && animframe <= 27.0) {
                                 playframes(MOE_THROW_SWORD_2, 82.0, 86.0)
                                 setanim(MOE_LAUGH, 0)
-                                break
+                                goto exit;
                             }
                             else if (animframe == 39.0) {
                                 playframes(MOE_THROW_SWORD_2, 89.0, 93.0)
                                 setanim(MOE_LAUGH, 0)
-                                break
+                                goto exit;
                             }
                             else if (animframe == 59.0) {
                                 playframes(MOE_THROW_SWORD_2, 96.0, 100.0)
                                 setanim(MOE_LAUGH, 0)
-                                break
+                                goto exit;
                             }
                             else if (animframe == 73.0) {
                                 playframes(MOE_THROW_SWORD_2, 75.0, 79.0)
                                 setanim(MOE_LAUGH, 0)
-                                break
+                                goto exit;
                             }
                         }
                         if (animframe == 22.0) {
@@ -646,6 +646,7 @@ state Moe_Attack_Player { // 8
                 setanim(MOE_RAISE_SWORD, 0)
             }
             playframe()
+            exit:
         } while (1)
     }
     event(e, a) {

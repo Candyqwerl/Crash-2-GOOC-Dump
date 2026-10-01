@@ -130,9 +130,9 @@ inline sub RooDoFinalHopTNT(anim, tile_x, tile_z, index, box) {
     troty = atan2(player -> trans)
     setanim(anim)
     do (var f = 1.0) {
-        x = s_x + ((t_x - s_x) * (f >> 8)) >> 4
-        y = s_y + ((t_y - s_y) * (f >> 8)) >> 4
-        z = s_z + ((t_z - s_z) * (f >> 8)) >> 4
+        x = s_x + ((t_x - s_x) * (f >> 8) >> 4)
+        y = s_y + ((t_y - s_y) * (f >> 8) >> 4)
+        z = s_z + ((t_z - s_z) * (f >> 8) >> 4)
         if (RooHopFrame >= 4) {
             roty += RooYawInc
         }
@@ -500,7 +500,7 @@ inline sub RooDazed() {
     do {
         animframe += 1.0
         if (RooDamageTaken) {
-            break
+            goto exit;
         }
         if (animframe == 32.0) {
             soundpitch(6.892)
@@ -510,36 +510,31 @@ inline sub RooDazed() {
         }
         playframe()
     } while (animframe + 1.0 <= 82.0)
-
-    if (!RooDamageTaken) {
-        setanim(ROO_DAZED_2, -1.0)
-        do {
-            animframe += 1.0
-            if (RooDamageTaken) {
-                break
-            }
-            playframe()
-        } while (animframe + 1.0 <= 41.0)
-    }
-
-    if (!RooDamageTaken) {
-        setanim(ROO_RECOVER, -1.0)
-        do {
-            animframe += 1.0
-            if (RooDamageTaken) {
-                break
-            }
-            if (animframe == 2.0 || animframe == 7.0 || animframe == 11.0) {
-                soundpitch(3.625)
-                sounddecay(9.6s)
-                soundplay([brk0A], 0.8V)
-            }
-            if (animframe == 20.0) {
-                RooCanTakeDamage = false
-            }
-            playframe()
-        } while (animframe + 1.0 <= 49.0)
-    }
+    setanim(ROO_DAZED_2, -1.0)
+    do {
+        animframe += 1.0
+        if (RooDamageTaken) {
+            goto exit;
+        }
+        playframe()
+    } while (animframe + 1.0 <= 41.0)
+    setanim(ROO_RECOVER, -1.0)
+    do {
+        animframe += 1.0
+        if (RooDamageTaken) {
+            goto exit;
+        }
+        if (animframe == 2.0 || animframe == 7.0 || animframe == 11.0) {
+            soundpitch(3.625)
+            sounddecay(9.6s)
+            soundplay([brk0A], 0.8V)
+        }
+        if (animframe == 20.0) {
+            RooCanTakeDamage = false
+        }
+        playframe()
+    } while (animframe + 1.0 <= 49.0)
+    exit:
 }
 
 inline sub RooAttacked() {

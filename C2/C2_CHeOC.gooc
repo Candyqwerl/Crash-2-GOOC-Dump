@@ -757,7 +757,7 @@ state WarpRoom_Idle { // 1
             }
             else {
                 SetCutsceneIndex()
-                changestateif(Cutscene_Start, getfield(self, 0x4F00))
+                changestateif(Cutscene_Triggered, getfield(self, offsetof(WarpCutsceneIndex)))
             }
         }
         misc = GLOBAL_21 & 2
@@ -773,7 +773,7 @@ state WarpRoom_Idle { // 1
             if (DebugCutsceneIndex > 18) {
                 DebugCutsceneIndex = 1
             }
-            changestate(Cutscene_Start)
+            changestate(Cutscene_Triggered)
         }
         var0 = FacingTarget
         ResolveFacingDoorLevel()
@@ -961,7 +961,7 @@ state LoadSave_End { // 6
     }
 }
 
-state Cutscene_Start { // 7
+state Cutscene_Triggered { // 7
     statusc 0
     code() {
         sendevent(Event76, player, 0)
@@ -1107,19 +1107,13 @@ state Cutscene_Sleep { // 10
     }
 }
 
-inline sub BreakIfCutsceneAborted() {
-    if (field_63) {
-        break
-    }
-}
-
 inline sub PlayCutsceneIntro(setup, model, clip) {
     do {
         animframe += 1.0
         if (field_63) {
             DeloadAnim(setup, model)
             DeloadAnim(clip, model)
-            break
+            goto exit;
         }
         playframe()
     } while (animframe + 1.0 <= 17.0)
@@ -1132,7 +1126,7 @@ inline sub PlayCutsceneSegment(prev, model, next, anim, start, end) {
         if (field_63) {
             DeloadAnim(prev, model)
             DeloadAnim(next, model)
-            break
+            goto exit;
         }
         animframe = (creator -> pathprog - start) << 8
         if (animframe > end) {
@@ -1142,10 +1136,8 @@ inline sub PlayCutsceneSegment(prev, model, next, anim, start, end) {
             playframe()
         }
     } while (1)
-    if (field_63 == 0) {
-        animframe = end
-        DeloadAnim(prev, model)
-    }
+    animframe = end
+    DeloadAnim(prev, model)
 }
 
 state Cutscene_Play { // 11
@@ -1168,57 +1160,52 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_0, -1.0)
+                PlayCutsceneIntro([C0_2V], [Co12G], [C002V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C0_2V], [Co12G])
+                PlayCutsceneSegment([C002V], [Co12G], [C012V], CORTEX_HEAD_1, 17, 254.0)
+                LoadAnim([C022V], [Co12G])
+                setanim(CORTEX_HEAD_2)
                 do {
-                    PlayCutsceneIntro([C0_2V], [Co12G], [C002V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C012V], [Co12G])
+                        DeloadAnim([C022V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (creator -> pathprog - 17 >= 0x1F4 && field_62 < 1) {
+                        field_62 = 1
+                        spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 3, creator, 0x1F4)
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C0_2V], [Co12G])
-                    PlayCutsceneSegment([C002V], [Co12G], [C012V], CORTEX_HEAD_1, 17, 254.0)
-                    BreakIfCutsceneAborted()
-                    LoadAnim([C022V], [Co12G])
-                    setanim(CORTEX_HEAD_2)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C012V], [Co12G])
-                            DeloadAnim([C022V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (creator -> pathprog - 17 >= 0x1F4 && field_62 < 1) {
-                            field_62 = 1
-                            spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 3, creator, 0x1F4)
-                        }
-                        if (animframe > 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C012V], [Co12G])
-                    setanim(CORTEX_HEAD_3)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C022V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x20F) << 8
-                        if (animframe > 191.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 191.0
-                    DeloadAnim([C022V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C012V], [Co12G])
+                setanim(CORTEX_HEAD_3)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C022V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (animframe > 191.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 191.0
+                DeloadAnim([C022V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1240,88 +1227,80 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_4, -1.0)
+                PlayCutsceneIntro([C1_2V], [Co12G], [C102V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C1_2V], [Co12G])
+                LoadAnim([C112V], [Co12G])
+                setanim(CORTEX_HEAD_5)
                 do {
-                    PlayCutsceneIntro([C1_2V], [Co12G], [C102V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C102V], [Co12G])
+                        DeloadAnim([C112V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C1_2V], [Co12G])
-                    LoadAnim([C112V], [Co12G])
-                    setanim(CORTEX_HEAD_5)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C102V], [Co12G])
-                            DeloadAnim([C112V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C102V], [Co12G])
-                    PlayCutsceneSegment([C112V], [Co12G], [C122V], CORTEX_HEAD_6, 0x110, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(CORTEX_HEAD_7)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C122V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x20F) << 8
-                            if (creator -> pathprog - 17 >= 0x221 && field_62 < 1) {
-                                field_62 = 1
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x22E && field_62 < 2) {
-                                field_62 = 2
-                                TargetVisibility = 0
-                            }
-                            else if (creator -> pathprog - 17 >= 0x232 && field_62 < 3) {
-                                field_62 = 3
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x236 && field_62 < 4) {
-                                field_62 = 4
-                                spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 2, creator, 0x26C)
-                            }
-                            else if (creator -> pathprog - 17 >= 0x25B && field_62 < 5) {
-                                field_62 = 5
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x2A4 && field_62 < 6) {
-                                field_62 = 6
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x2BD && field_62 < 7) {
-                                field_62 = 7
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x2D6 && field_62 < 8) {
-                                field_62 = 8
-                                TargetDistortionLevel = 28
-                            }
-                            if (animframe > 246.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 246.0
-                    DeloadAnim([C122V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C102V], [Co12G])
+                PlayCutsceneSegment([C112V], [Co12G], [C122V], CORTEX_HEAD_6, 0x110, 254.0)
+                setanim(CORTEX_HEAD_7)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C122V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (creator -> pathprog - 17 >= 0x221 && field_62 < 1) {
+                        field_62 = 1
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x22E && field_62 < 2) {
+                        field_62 = 2
+                        TargetVisibility = 0
+                    }
+                    else if (creator -> pathprog - 17 >= 0x232 && field_62 < 3) {
+                        field_62 = 3
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x236 && field_62 < 4) {
+                        field_62 = 4
+                        spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 2, creator, 0x26C)
+                    }
+                    else if (creator -> pathprog - 17 >= 0x25B && field_62 < 5) {
+                        field_62 = 5
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x2A4 && field_62 < 6) {
+                        field_62 = 6
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x2BD && field_62 < 7) {
+                        field_62 = 7
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x2D6 && field_62 < 8) {
+                        field_62 = 8
+                        TargetDistortionLevel = 28
+                    }
+                    if (animframe > 246.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 246.0
+                DeloadAnim([C122V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1343,51 +1322,47 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_8, -1.0)
+                PlayCutsceneIntro([C2_2V], [Co12G], [C202V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C2_2V], [Co12G])
+                LoadAnim([C212V], [Co12G])
+                setanim(CORTEX_HEAD_9)
                 do {
-                    PlayCutsceneIntro([C2_2V], [Co12G], [C202V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C202V], [Co12G])
+                        DeloadAnim([C212V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C2_2V], [Co12G])
-                    LoadAnim([C212V], [Co12G])
-                    setanim(CORTEX_HEAD_9)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C202V], [Co12G])
-                            DeloadAnim([C212V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C202V], [Co12G])
-                    setanim(CORTEX_HEAD_10)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C212V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe > 43.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 43.0
-                    DeloadAnim([C212V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C202V], [Co12G])
+                setanim(CORTEX_HEAD_10)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C212V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 43.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 43.0
+                DeloadAnim([C212V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1409,70 +1384,65 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_11, -1.0)
+                PlayCutsceneIntro([C3_2V], [Co12G], [C302V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C3_2V], [Co12G])
+                LoadAnim([C312V], [Co12G])
+                setanim(CORTEX_HEAD_12)
                 do {
-                    PlayCutsceneIntro([C3_2V], [Co12G], [C302V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C302V], [Co12G])
+                        DeloadAnim([C312V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C3_2V], [Co12G])
-                    LoadAnim([C312V], [Co12G])
-                    setanim(CORTEX_HEAD_12)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C302V], [Co12G])
-                            DeloadAnim([C312V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C302V], [Co12G])
-                    LoadAnim([C322V], [Co12G])
-                    setanim(CORTEX_HEAD_13)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C312V], [Co12G])
-                            DeloadAnim([C322V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C312V], [Co12G])
-                    setanim(CORTEX_HEAD_14)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C322V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x20F) << 8
-                        if (animframe > 14.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 14.0
-                    DeloadAnim([C322V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C302V], [Co12G])
+                LoadAnim([C322V], [Co12G])
+                setanim(CORTEX_HEAD_13)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C312V], [Co12G])
+                        DeloadAnim([C322V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C312V], [Co12G])
+                setanim(CORTEX_HEAD_14)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C322V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (animframe > 14.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 14.0
+                DeloadAnim([C322V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1494,98 +1464,92 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_15, -1.0)
+                PlayCutsceneIntro([C4_2V], [Co12G], [C402V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C4_2V], [Co12G])
+                LoadAnim([C412V], [Co12G])
+                setanim(CORTEX_HEAD_16)
                 do {
-                    PlayCutsceneIntro([C4_2V], [Co12G], [C402V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C402V], [Co12G])
+                        DeloadAnim([C412V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C4_2V], [Co12G])
-                    LoadAnim([C412V], [Co12G])
-                    setanim(CORTEX_HEAD_16)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C402V], [Co12G])
-                            DeloadAnim([C412V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C402V], [Co12G])
-                    PlayCutsceneSegment([C412V], [Co12G], [C422V], CORTEX_HEAD_17, 0x110, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(CORTEX_HEAD_18)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C422V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x20F) << 8
-                            if (creator -> pathprog - 17 >= 0x279 && field_62 < 1) {
-                                field_62 = 1
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x28A && field_62 < 2) {
-                                field_62 = 2
-                                TargetVisibility = 0
-                            }
-                            else if (creator -> pathprog - 17 >= 0x29A && field_62 < 3) {
-                                field_62 = 3
-                                spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 1, creator, 0x2DD)
-                            }
-                            else if (creator -> pathprog - 17 >= 0x2C4 && field_62 < 4) {
-                                field_62 = 4
-                                TargetDistortionLevel = 28
-                            }
-                            if (animframe > 254.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C422V], [Co12G])
-                    animseq = 0
-                    do {
-                        BreakIfCutsceneAborted()
-                        animframe = (creator -> pathprog - 0x30E) << 8
-                        if (animframe > 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    animseq = 0
-                    do {
-                        BreakIfCutsceneAborted()
-                        animframe = (creator -> pathprog - 0x40D) << 8
-                        if (animframe > 90.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 90.0
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C402V], [Co12G])
+                PlayCutsceneSegment([C412V], [Co12G], [C422V], CORTEX_HEAD_17, 0x110, 254.0)
+                setanim(CORTEX_HEAD_18)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C422V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (creator -> pathprog - 17 >= 0x279 && field_62 < 1) {
+                        field_62 = 1
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x28A && field_62 < 2) {
+                        field_62 = 2
+                        TargetVisibility = 0
+                    }
+                    else if (creator -> pathprog - 17 >= 0x29A && field_62 < 3) {
+                        field_62 = 3
+                        spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 1, creator, 0x2DD)
+                    }
+                    else if (creator -> pathprog - 17 >= 0x2C4 && field_62 < 4) {
+                        field_62 = 4
+                        TargetDistortionLevel = 28
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C422V], [Co12G])
+                animseq = 0
+                do {
+                    if (field_63) {
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x30E) << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                animseq = 0
+                do {
+                    if (field_63) {
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x40D) << 8
+                    if (animframe > 90.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 90.0
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1607,51 +1571,47 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_21, -1.0)
+                PlayCutsceneIntro([C5_2V], [Co12G], [C502V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C5_2V], [Co12G])
+                LoadAnim([C512V], [Co12G])
+                setanim(CORTEX_HEAD_22)
                 do {
-                    PlayCutsceneIntro([C5_2V], [Co12G], [C502V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C502V], [Co12G])
+                        DeloadAnim([C512V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C5_2V], [Co12G])
-                    LoadAnim([C512V], [Co12G])
-                    setanim(CORTEX_HEAD_22)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C502V], [Co12G])
-                            DeloadAnim([C512V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C502V], [Co12G])
-                    setanim(CORTEX_HEAD_23)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C512V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe > 172.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 172.0
-                    DeloadAnim([C512V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C502V], [Co12G])
+                setanim(CORTEX_HEAD_23)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C512V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 172.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 172.0
+                DeloadAnim([C512V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1673,51 +1633,47 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_24, -1.0)
+                PlayCutsceneIntro([C6_2V], [Co12G], [C602V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C6_2V], [Co12G])
+                LoadAnim([C612V], [Co12G])
+                setanim(CORTEX_HEAD_25)
                 do {
-                    PlayCutsceneIntro([C6_2V], [Co12G], [C602V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C602V], [Co12G])
+                        DeloadAnim([C612V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C6_2V], [Co12G])
-                    LoadAnim([C612V], [Co12G])
-                    setanim(CORTEX_HEAD_25)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C602V], [Co12G])
-                            DeloadAnim([C612V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C602V], [Co12G])
-                    setanim(CORTEX_HEAD_26)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C612V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe >= 95.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 95.0
-                    DeloadAnim([C612V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C602V], [Co12G])
+                setanim(CORTEX_HEAD_26)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C612V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 95.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 95.0
+                DeloadAnim([C612V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1739,71 +1695,67 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_27, -1.0)
+                PlayCutsceneIntro([C7_2V], [Co12G], [C702V])
+                    
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C7_2V], [Co12G])
+                LoadAnim([C712V], [Co12G])
+                setanim(CORTEX_HEAD_28)
                 do {
-                    PlayCutsceneIntro([C7_2V], [Co12G], [C702V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C702V], [Co12G])
+                        DeloadAnim([C712V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C7_2V], [Co12G])
-                    LoadAnim([C712V], [Co12G])
-                    setanim(CORTEX_HEAD_28)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C702V], [Co12G])
-                            DeloadAnim([C712V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C702V], [Co12G])
-                    loadfile([C722V])
-                    deloadfile([Co12G])
-                    setanim(CORTEX_HEAD_29)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C712V], [Co12G])
-                            DeloadAnim([C722V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C712V], [Co12G])
-                    setanim(CORTEX_HEAD_30)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C722V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x20F) << 8
-                        if (animframe >= 47.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 47.0
-                    DeloadAnim([C722V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C702V], [Co12G])
+                loadfile([C722V])
+                loadfile([Co12G])
+                setanim(CORTEX_HEAD_29)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C712V], [Co12G])
+                        DeloadAnim([C722V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C712V], [Co12G])
+                setanim(CORTEX_HEAD_30)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C722V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (animframe > 47.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 47.0
+                DeloadAnim([C722V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1825,73 +1777,68 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_31, -1.0)
+                PlayCutsceneIntro([C8_2V], [Co12G], [C802V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C8_2V], [Co12G])
+                LoadAnim([C812V], [Co12G])
+                setanim(CORTEX_HEAD_32)
                 do {
-                    PlayCutsceneIntro([C8_2V], [Co12G], [C802V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C802V], [Co12G])
+                        DeloadAnim([C812V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C8_2V], [Co12G])
-                    LoadAnim([C812V], [Co12G])
-                    setanim(CORTEX_HEAD_32)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C802V], [Co12G])
-                            DeloadAnim([C812V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C802V], [Co12G])
-                    loadfile([C822V])
-                    deloadfile([Co12G])
-                    setanim(CORTEX_HEAD_33)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C812V], [Co12G])
-                            DeloadAnim([C822V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x110) << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C812V], [Co12G])
-                    PlayCutsceneSegment([C822V], [Co12G], [C832V], CORTEX_HEAD_34, 0x20F, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(CORTEX_HEAD_35)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C832V], [Co12G])
-                            break
-                        }
-                        animframe = (creator -> pathprog - 0x30E) << 8
-                        if (animframe >= 22.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 22.0
-                    DeloadAnim([C832V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C802V], [Co12G])
+                loadfile([C822V])
+                loadfile([Co12G])
+                setanim(CORTEX_HEAD_33)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C812V], [Co12G])
+                        DeloadAnim([C822V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C812V], [Co12G])
+                PlayCutsceneSegment([C822V], [Co12G], [C832V], CORTEX_HEAD_34, 0x20F, 254.0)
+                    
+                setanim(CORTEX_HEAD_35)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C832V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x30E) << 8
+                    if (animframe > 22.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 22.0
+                DeloadAnim([C832V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -1913,148 +1860,131 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_36, -1.0)
+                PlayCutsceneIntro([C9_2V], [Co12G], [C902V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([C9_2V], [Co12G])
+                PlayCutsceneSegment([C902V], [Co12G], [C912V], CORTEX_HEAD_37, 17, 254.0)
+                    
+                LoadAnim([C922V], [Co12G])
+                setanim(CORTEX_HEAD_38)
                 do {
-                    PlayCutsceneIntro([C9_2V], [Co12G], [C902V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([C912V], [Co12G])
+                        DeloadAnim([C922V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x110) << 8
+                    if (creator -> pathprog - 17 >= 0x1DB && field_62 < 1) {
+                        field_62 = 1
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x1F4 && field_62 < 2) {
+                        field_62 = 2
+                        TargetVisibility = 0
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([C9_2V], [Co12G])
-                    PlayCutsceneSegment([C902V], [Co12G], [C912V], CORTEX_HEAD_37, 17, 254.0)
-                    BreakIfCutsceneAborted()
-                    LoadAnim([C922V], [Co12G])
-                    setanim(CORTEX_HEAD_38)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C912V], [Co12G])
-                            DeloadAnim([C922V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x110) << 8
-                            if (creator -> pathprog - 17 >= 0x1DB && field_62 < 1) {
-                                field_62 = 1
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x1F4 && field_62 < 2) {
-                                field_62 = 2
-                                TargetVisibility = 0
-                            }
-                            if (animframe > 254.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C912V], [Co12G])
-                    setanim(CORTEX_HEAD_39)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C922V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x20F) << 8
-                            if (creator -> pathprog - 17 >= 0x20D && field_62 < 3) {
-                                field_62 = 3
-                                spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 0, creator, 0x249)
-                            }
-                            else if (creator -> pathprog - 17 >= 0x236 && field_62 < 4) {
-                                field_62 = 4
-                                TargetDistortionLevel = 28
-                            }
-                            if (animframe > 254.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C922V], [Co12G])
-                    LoadAnim([C942V], [Co12G])
-                    animseq = 0
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C942V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x30E) << 8
-                            if (creator -> pathprog - 17 >= 0x3CB && field_62 < 5) {
-                                field_62 = 5
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x3F0 && field_62 < 6) {
-                                field_62 = 6
-                                TargetDistortionLevel = 28
-                            }
-                            if (animframe > 254.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    LoadAnim([C952V], [Co12G])
-                    setanim(CORTEX_HEAD_41)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C942V], [Co12G])
-                            DeloadAnim([C952V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x40D) << 8
-                            if (creator -> pathprog - 17 >= 0x43B && field_62 < 7) {
-                                field_62 = 7
-                                TargetDistortionLevel = 28
-                            }
-                            else if (creator -> pathprog - 17 >= 0x43D && field_62 < 8) {
-                                field_62 = 8
-                                TargetVisibility = 1.0
-                            }
-                            if (animframe > 254.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([C942V], [Co12G])
-                    setanim(CORTEX_HEAD_42)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([C952V], [Co12G])
-                            break
-                        }
-                        else {
-                            animframe = (creator -> pathprog - 0x50C) << 8
-                            if (animframe > 169.0) {
-                                break
-                            }
-                            else {
-                                playframe()
-                            }
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 169.0
-                    DeloadAnim([C952V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C912V], [Co12G])
+                setanim(CORTEX_HEAD_39)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C922V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x20F) << 8
+                    if (creator -> pathprog - 17 >= 0x20D && field_62 < 3) {
+                        field_62 = 3
+                        spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 0, creator, 0x249)
+                    }
+                    else if (creator -> pathprog - 17 >= 0x236 && field_62 < 4) {
+                        field_62 = 4
+                        TargetDistortionLevel = 28
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C922V], [Co12G])
+                LoadAnim([C942V], [Co12G])
+                animseq = 0
+                do {
+                    if (field_63) {
+                        DeloadAnim([C942V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x30E) << 8
+                    if (creator -> pathprog - 17 >= 0x3CB && field_62 < 5) {
+                        field_62 = 5
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x3F0 && field_62 < 6) {
+                        field_62 = 6
+                        TargetDistortionLevel = 28
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                LoadAnim([C952V], [Co12G])
+                setanim(CORTEX_HEAD_41)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C942V], [Co12G])
+                        DeloadAnim([C952V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x40D) << 8
+                    if (creator -> pathprog - 17 >= 0x43B && field_62 < 7) {
+                        field_62 = 7
+                        TargetDistortionLevel = 28
+                    }
+                    else if (creator -> pathprog - 17 >= 0x43D && field_62 < 8) {
+                        field_62 = 8
+                        TargetVisibility = 1.0
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([C942V], [Co12G])
+                setanim(CORTEX_HEAD_42)
+                do {
+                    if (field_63) {
+                        DeloadAnim([C952V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = (creator -> pathprog - 0x50C) << 8
+                    if (animframe > 169.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 169.0
+                DeloadAnim([C952V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -2076,33 +2006,29 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_43, -1.0)
+                PlayCutsceneIntro([Ca_2V], [Co12G], [Ca02V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([Ca_2V], [Co12G])
+                setanim(CORTEX_HEAD_44)
                 do {
-                    PlayCutsceneIntro([Ca_2V], [Co12G], [Ca02V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([Ca02V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 203.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([Ca_2V], [Co12G])
-                    setanim(CORTEX_HEAD_44)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Ca02V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe > 203.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 203.0
-                    DeloadAnim([Ca02V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 203.0
+                DeloadAnim([Ca02V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -2124,56 +2050,51 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_45, -1.0)
+                PlayCutsceneIntro([Cb_2V], [Co12G], [Cb02V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([Cb_2V], [Co12G])
+                LoadAnim([Cb12V], [Co12G])
+                setanim(CORTEX_HEAD_46)
                 do {
-                    PlayCutsceneIntro([Cb_2V], [Co12G], [Cb02V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([Cb02V], [Co12G])
+                        DeloadAnim([Cb12V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (creator -> pathprog - 17 >= 0xF1 && field_62 < 1) {
+                        field_62 = 1
+                        spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 3, creator, 0xF1)
+                    }
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([Cb_2V], [Co12G])
-                    LoadAnim([Cb12V], [Co12G])
-                    setanim(CORTEX_HEAD_46)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cb02V], [Co12G])
-                            DeloadAnim([Cb12V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (creator -> pathprog - 17 >= 0xF1 && field_62 < 1) {
-                            field_62 = 1
-                            spawn(CHeOC, S_CUTSCENE_EXTRAS, 1, 3, creator, 0xF1)
-                        }
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([Cb12V], [Co12G])
-                    setanim(CORTEX_HEAD_47)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cb02V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x110 << 8
-                        if (animframe > 143.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 143.0
-                    DeloadAnim([Cb12V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([Cb02V], [Co12G])
+                setanim(CORTEX_HEAD_47)
+                do {
+                    if (field_63) {
+                        DeloadAnim([Cb12V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x110 << 8
+                    if (animframe > 143.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 143.0
+                DeloadAnim([Cb12V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -2195,54 +2116,48 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_48, -1.0)
+                PlayCutsceneIntro([Cc_2V], [Co12G], [Cc02V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([Cc_2V], [Co12G])
+                LoadAnim([Cc12V], [Co12G])
+                setanim(CORTEX_HEAD_49)
                 do {
-                    PlayCutsceneIntro([Cc_2V], [Co12G], [Cc02V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([Cc02V], [Co12G])
+                        DeloadAnim([Cc12V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([Cc_2V], [Co12G])
-                    LoadAnim([Cc12V], [Co12G])
-                    setanim(CORTEX_HEAD_49)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cc02V], [Co12G])
-                            DeloadAnim([Cc12V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([Cc02V], [Co12G])
-                    PlayCutsceneSegment([Cc12V], [Co12G], [Cc22V], CORTEX_HEAD_50, 0x110, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(CORTEX_HEAD_51)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cc22V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x20F << 8
-                        if (animframe > 71.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 71.0
-                    DeloadAnim([Cc22V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([Cc02V], [Co12G])
+                PlayCutsceneSegment([Cc12V], [Co12G], [Cc22V], CORTEX_HEAD_50, 0x110, 254.0)
+                setanim(CORTEX_HEAD_51)
+                do {
+                    if (field_63) {
+                        DeloadAnim([Cc22V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x20F << 8
+                    if (animframe > 71.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 71.0
+                DeloadAnim([Cc22V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -2264,52 +2179,48 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(CORTEX_HEAD_52, -1.0)
+                PlayCutsceneIntro([Cd_2V], [Co12G], [Cd02V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([Cd_2V], [Co12G])
+                LoadAnim([Cd12V], [Co12G])
+                setanim(CORTEX_HEAD_53)
                 do {
-                    PlayCutsceneIntro([Cd_2V], [Co12G], [Cd02V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([Cd02V], [Co12G])
+                        DeloadAnim([Cd12V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([Cd_2V], [Co12G])
-                    LoadAnim([Cd12V], [Co12G])
-                    setanim(CORTEX_HEAD_53)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cd02V], [Co12G])
-                            DeloadAnim([Cd12V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([Cd02V], [Co12G])
-                    setanim(CORTEX_HEAD_54)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([Cd12V], [Co12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x110 << 8
-                        if (animframe > 44.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 44.0
-                    DeloadAnim([Cd12V], [Co12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([Cd02V], [Co12G])
+                setanim(CORTEX_HEAD_54)
+                do {
+                    if (field_63) {
+                        DeloadAnim([Cd12V], [Co12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x110 << 8
+                    if (animframe > 44.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                    
+                animframe = 44.0
+                DeloadAnim([Cd12V], [Co12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
             }
@@ -2332,60 +2243,51 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(BRIO_HEAD_0, -1.0)
+                PlayCutsceneIntro([B0_2V], [Br12G], [B002V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([B0_2V], [Br12G])
+                LoadAnim([B012V], [Br12G])
+                setanim(BRIO_HEAD_1)
                 do {
-                    PlayCutsceneIntro([B0_2V], [Br12G], [B002V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([B002V], [Br12G])
+                        DeloadAnim([B012V], [Br12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([B0_2V], [Br12G])
-                    LoadAnim([B012V], [Br12G])
-                    setanim(BRIO_HEAD_1)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([B002V], [Br12G])
-                            DeloadAnim([B012V], [Br12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([B002V], [Br12G])
-                    PlayCutsceneSegment([B012V], [Br12G], [B022V], BRIO_HEAD_2, 0x110, 254.0)
-                    BreakIfCutsceneAborted()
-                    PlayCutsceneSegment([B022V], [Br12G], [B032V], BRIO_HEAD_3, 0x20F, 254.0)
-                    BreakIfCutsceneAborted()
-                    PlayCutsceneSegment([B032V], [Br12G], [B042V], BRIO_HEAD_4, 0x30E, 254.0)
-                    BreakIfCutsceneAborted()
-                    PlayCutsceneSegment([B042V], [Br12G], [B052V], BRIO_HEAD_5, 0x40D, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(BRIO_HEAD_6)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([B052V], [Br12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x50C << 8
-                        if (animframe > 71.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 71.0
-                    DeloadAnim([B052V], [Br12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([B002V], [Br12G])
+                PlayCutsceneSegment([B012V], [Br12G], [B022V], BRIO_HEAD_2, 0x110, 254.0)                    
+                PlayCutsceneSegment([B022V], [Br12G], [B032V], BRIO_HEAD_3, 0x20F, 254.0)
+                PlayCutsceneSegment([B032V], [Br12G], [B042V], BRIO_HEAD_4, 0x30E, 254.0)
+                PlayCutsceneSegment([B042V], [Br12G], [B052V], BRIO_HEAD_5, 0x40D, 254.0)
+                setanim(BRIO_HEAD_6)
+                do {
+                    if (field_63) {
+                        DeloadAnim([B052V], [Br12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x50C << 8
+                    if (animframe > 71.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)                    
+                animframe = 71.0
+                DeloadAnim([B052V], [Br12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
                 deloadfile([BrioT])
@@ -2398,7 +2300,7 @@ state Cutscene_Play { // 11
                 field_61 = 0
                 loadfile([CrtxT])
                 loadfile([BrioT])
-                LoadAnim([B0_2V], [Br12G])
+                LoadAnim([B1_2V], [Br12G])
                 spawn2(9, 44, 1, [B102O], [B112O], [B122O], [B132O], [B142O], [B152O], [B162O], 7.0, 0x61A8, 8.0)
                 creator = objectspawned
                 LoadAnim([B102V], [Br12G])
@@ -2409,55 +2311,50 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(BRIO_HEAD_7, -1.0)
+                PlayCutsceneIntro([B1_2V], [Br12G], [B102V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([B1_2V], [Br12G])
+                LoadAnim([B112V], [Br12G])
+                setanim(BRIO_HEAD_8)
                 do {
-                    PlayCutsceneIntro([B1_2V], [Br12G], [B102V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([B102V], [Br12G])
+                        DeloadAnim([B112V], [Br12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([B1_2V], [Br12G])
-                    LoadAnim([B112V], [Br12G])
-                    setanim(BRIO_HEAD_8)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([B102V], [Br12G])
-                            DeloadAnim([B112V], [Br12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([B102V], [Br12G])
-                    PlayCutsceneSegment([B112V], [Br12G], [B122V], BRIO_HEAD_9, 0x110, 254.0)
-                    BreakIfCutsceneAborted()
-                    PlayCutsceneSegment([B122V], [Br12G], [B132V], BRIO_HEAD_10, 0x20F, 254.0)
-                    BreakIfCutsceneAborted()
-                    setanim(BRIO_HEAD_11)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([B132V], [Br12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x30E << 8
-                        if (animframe > 20.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 20.0
-                    DeloadAnim([B132V], [Br12G])
-                } while (0)
+                } while (1)
+                    
+                animframe = 254.0
+                DeloadAnim([B102V], [Br12G])
+                PlayCutsceneSegment([B112V], [Br12G], [B122V], BRIO_HEAD_9, 0x110, 254.0)
+                PlayCutsceneSegment([B122V], [Br12G], [B132V], BRIO_HEAD_10, 0x20F, 254.0)
+                setanim(BRIO_HEAD_11)
+                do {
+                    if (field_63) {
+                        DeloadAnim([B132V], [Br12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x30E << 8
+                    if (animframe > 20.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 20.0
+                DeloadAnim([B132V], [Br12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
                 deloadfile([BrioT])
@@ -2481,51 +2378,47 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(SIS_HEAD_3, -1.0)
+                PlayCutsceneIntro([S2_2V], [Si12G], [S202V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([S2_2V], [Si12G])
+                LoadAnim([S212V], [Si12G])
+                setanim(SIS_HEAD_4)
                 do {
-                    PlayCutsceneIntro([S2_2V], [Si12G], [S202V])
-                    BreakIfCutsceneAborted()
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([S202V], [Si12G])
+                        DeloadAnim([S212V], [Si12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 254.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([S2_2V], [Si12G])
-                    LoadAnim([S212V], [Si12G])
-                    setanim(SIS_HEAD_4)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([S202V], [Si12G])
-                            DeloadAnim([S212V], [Si12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe > 254.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 254.0
-                    DeloadAnim([S202V], [Si12G])
-                    setanim(SIS_HEAD_5)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([S212V], [Si12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 0x110 << 8
-                        if (animframe > 74.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 74.0
-                    DeloadAnim([S212V], [Si12G])
-                } while (0)
+                } while (1)
+                animframe = 254.0
+                DeloadAnim([S202V], [Si12G])
+                setanim(SIS_HEAD_5)
+                do {
+                    if (field_63) {
+                        DeloadAnim([S212V], [Si12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 0x110 << 8
+                    if (animframe > 74.0) {
+                        break
+                    }
+                    else {
+                        playframe()
+                    }
+                } while (1)
+                animframe = 74.0
+                DeloadAnim([S212V], [Si12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
                 deloadfile([Sis1T])
@@ -2549,33 +2442,29 @@ state Cutscene_Play { // 11
                 sendevent(EventTriggered, creator)
                 TargetVisibility = 1.0
                 setanim(SIS_HEAD_6, -1.0)
+                PlayCutsceneIntro([S3_2V], [Si12G], [S302V])
+                while (creator -> pathprog < 17) {
+                    playframe()
+                }
+                field_62 = 0
+                DeloadAnim([S3_2V], [Si12G])
+                setanim(SIS_HEAD_7)
                 do {
-                    PlayCutsceneIntro([S3_2V], [Si12G], [S302V])
-                    BreakIfCutsceneAborted()
-
-                    while (creator -> pathprog < 17) {
+                    if (field_63) {
+                        DeloadAnim([S302V], [Si12G])
+                        goto exit;
+                    }
+                    animframe = creator -> pathprog - 17 << 8
+                    if (animframe > 257.0) {
+                        break
+                    }
+                    else {
                         playframe()
                     }
-                    field_62 = 0
-                    DeloadAnim([S3_2V], [Si12G])
-                    setanim(SIS_HEAD_7)
-                    do {
-                        if (field_63) {
-                            DeloadAnim([S302V], [Si12G])
-                            break
-                        }
-                        animframe = creator -> pathprog - 17 << 8
-                        if (animframe >= 257.0) {
-                            break
-                        }
-                        else {
-                            playframe()
-                        }
-                    } while (1)
-                    BreakIfCutsceneAborted()
-                    animframe = 257.0
-                    DeloadAnim([S302V], [Si12G])
-                } while (0)
+                } while (1)
+                animframe = 257.0
+                DeloadAnim([S302V], [Si12G])
+                exit:
                 cascadeevent(Event12, self)
                 deloadfile([CrtxT])
                 deloadfile([Sis1T])
@@ -2907,7 +2796,7 @@ state Portal_FX_Load_VIDO { // 16
         if (!PortalVIDOLoaded) {
             do {
                 playnull()
-            } until (getpayload(&[Car1T]) <= getfreepages())
+            } until (getpayload(& [Car1T]) <= getfreepages())
             loadfile([Car1T])
             loadfile([wdr0D])
             PortalVIDOLoaded = 1
@@ -2946,7 +2835,7 @@ state Portal_FX_Active { // 17
         do {
             do (var i = 0) {
                 if (GLOBAL_126) {
-                    ins76(GLOBAL_126, i)
+                    ins76(GLOBAL_126, i) // params: entry, frame
                     ins77(0, misc, GLOBAL_126, WARP_PORTAL_SWIRL) // fucker
                 }
                 var0 = (GLOBAL_126[1.0] + 1.0) >> 1
@@ -2959,7 +2848,7 @@ state Portal_FX_Active { // 17
                 vecx = ((S5 * 0x9F) >> 8) + 0x60
                 vecy = ((S6 * 0x9F) >> 8) + 0x60
                 GLOBAL_136 = 0x6000 | (vecx << 16) | vecy
-                GLOBAL_137 = (0x1000 * PortalVisibility) >> 8
+                GLOBAL_137 = (16.0 * PortalVisibility) >> 8
                 playnull()
             } while ({ i += 1.0 }; i < GLOBAL_126[1.0])
         } while (1)
@@ -3040,7 +2929,7 @@ state Portal_FX_Active { // 17
         if (PortalVisibility != PortalTargetVisibility) {
             PortalVisibility = seek(PortalVisibility, PortalTargetVisibility, 10)
         }
-        changestateifn(Portal_FX_Kill, getfield(self, 74.0))
+        changestateifn(Portal_FX_Kill, getfield(self, offsetof(PortalVisibility)))
     }
 }
 
@@ -3733,7 +3622,7 @@ state Cutscene_Extras { // 34
         creator = spawner
         if (type == 0) {
             if (getfreepages() < 2) {
-                return
+                goto exit;
             }
             loadfile([Sis1T])
             loadfile([S402V])
@@ -3741,7 +3630,7 @@ state Cutscene_Extras { // 34
         }
         else if (type == 1) {
             if (getfreepages() < 2) {
-                return
+                goto exit;
             }
             loadfile([Sis1T])
             loadfile([S602V])
@@ -3749,7 +3638,7 @@ state Cutscene_Extras { // 34
         }
         else if (type == 2) {
             if (getfreepages() < 1) {
-                return
+                goto exit;
             }
             loadfile([Sis1T])
             loadfile([S702V])
@@ -3854,6 +3743,7 @@ state Cutscene_Extras { // 34
                 playanim(0, CRYSTAL)
             } while (frametime - start < 0.5s)
         }
+        exit:
     }
     event(e, a) {
         if (e == Event12) {
