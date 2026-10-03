@@ -48,7 +48,7 @@ state Firefly_Init { // 0
         if (FireflyID && GLOBAL_126 & (1 << FireflyID)) {
             return
         }
-        FlarePulse = 360deg
+        FlarePulse = 16.0
         spawn(FflOC, S_FLARE_MASTER, 1)
         DetachWarningStart = Lifetime - 2.5s
         trotx = 180deg
@@ -594,7 +594,7 @@ state Firefly_Glow { // 8
 state Firefly_Path_Init { // 9
     code() {
         LightSourceRegistered = false
-        FlarePulse = 360deg
+        FlarePulse = 16.0
         spawn(FflOC, S_FLARE_MASTER, 1)
         trotx = 180deg
         playnull()
