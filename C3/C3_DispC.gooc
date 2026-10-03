@@ -261,7 +261,7 @@
 
 var mem1, mem2, mem3, mem4, mem5, mem6, mem7, mem8,
     mem9, mem10, mem11, DisplayFrame, DisplayVar13, DisplayVar14, DisplayVar15, DisplayVar16,
-    LocalizedTextFrame, DisplayVar18, DisplayVar19
+    TextFrame, DisplayVar18, DisplayVar19
 
 /*--- HUD Counters / Collectable Icons ---*/
 expr DisplayVarField         = DisplayVar13
@@ -285,7 +285,7 @@ expr PanelTotalitemCount     = DisplayVar19
 expr CollectedRewardType     = DisplayVar15
 expr CollectedRewardArg      = DisplayVar16
 
-/*--- Time Trial ---*/
+/*--- Time Trial Timer ---*/
 expr TrialRecordStatByte     = DisplayVar13
 expr TrialFreezeFrames       = DisplayVar14
 expr TrialElapsedFrames      = DisplayVar15
@@ -300,6 +300,9 @@ expr REWARD_GEM_SPECIAL  = 301.0
 expr REWARD_CRYSTAL      = 200.0
 expr REWARD_TIME         = 110.0
 expr REWARD_1UP          = 97.0
+
+expr DISPLAY_BOUND_Y = 190.0
+expr DISPLAY_BOUND_LOWER_Y = 102.0
 
 inline sub SetVFX2D() {
     vfx = (vfx & 0xFFFFFF00) | 0x6
@@ -316,7 +319,7 @@ state HUD_Life_Display { // 0
         SetVFX2D()
         SetScale(0x333, 2.0, 2.0)
         x = 130.0
-        vecy = 190.0
+        vecy = DISPLAY_BOUND_Y
         z = 0
         DisplayFrame = 0
         DisplayVarField = offsetof(mem2)
@@ -335,7 +338,7 @@ state HUD_Wumpa_Display { // 1
         vfx = (vfx & 0xFFFFFF00) | 0x6
         SetScale(0x199, 2.0, 2.0)
         x = -200.0
-        vecy = 190.0
+        vecy = DISPLAY_BOUND_Y
         z = 0
         DisplayFrame = 0
         DisplayVarField = offsetof(mem1)
@@ -355,7 +358,7 @@ state HUD_Box_Display { // 2
         vfx = (vfx & 0xFF00FFFF) | 0x30000
         SetScale(0x1800, 0x1333, 0x1800)
         x = -40.0
-        vecy = 190.0
+        vecy = DISPLAY_BOUND_Y
         z = 0
         setanim(BOX_DISPLAY)
         DisplayFrame = 0
@@ -433,8 +436,8 @@ state Display_Show { // 4
             }
         }
         changestateif(Display_Hide, frametime - statetime >= 37)
-        vecy = seek(vecy, 102.0, 10.0)
-        if (vecy == 102.0) {
+        vecy = seek(vecy, DISPLAY_BOUND_LOWER_Y, 10.0)
+        if (vecy == DISPLAY_BOUND_LOWER_Y) {
             if (getfield(player, DisplayVarField) > getfield(self, DisplayVarField)) {
                 unless (time(3)) {
                     statetime = frametime
@@ -478,9 +481,9 @@ sub BoxDisplayTrans() {
     }
     roty = spd(roty, 180deg)
     changestateif(Display_Hide, frametime - statetime >= 37)
-    vecy = seek(vecy, 102.0, 10.0)
+    vecy = seek(vecy, DISPLAY_BOUND_LOWER_Y, 10.0)
     setfield(self, DisplayVarField, getfield(player, DisplayVarField))
-    if (vecy == 102.0) {
+    if (vecy == DISPLAY_BOUND_LOWER_Y) {
         DisplayRequestMode = 0
     }
     y = vecy + vecz
@@ -493,7 +496,7 @@ state Display_Hide { // 5
     trans {
         v0 = getfield(player, DisplayVarField)
         changestateif(Display_Show, v0 != getfield(self, DisplayVarField) || buttonhold(PAD_TRIANGLE) || DisplayRequestMode)
-        if (vecy < 190.0) {
+        if (vecy < DISPLAY_BOUND_Y) {
             vecy += 4.0
         }
         else {
@@ -582,8 +585,8 @@ state HUD_Bonus_Wumpa_Display { // 7
         SetVFX2D()
         SetScale(0xCC, 1.0, 1.0)
         x = -200.0
-        y = -190.0
-        vely = -102.0
+        y = -DISPLAY_BOUND_Y
+        vely = -DISPLAY_BOUND_LOWER_Y
         z = 0
         setanim(FRUIT_WUMPA)
         DisplayFrame = 0
@@ -604,8 +607,8 @@ state HUD_Bonus_Life_Display { // 8
         SetVFX2D()
         SetScale(0x199, 0x100, 0x100)
         x = 170.0
-        y = -190.0
-        vely = -102.0
+        y = -DISPLAY_BOUND_Y
+        vely = -DISPLAY_BOUND_LOWER_Y
         z = 0
         setanim(PICKUP_LIFE)
         DisplayFrame = 0
@@ -630,8 +633,8 @@ state HUD_Bonus_Box_Display { // 9
         zindex = 4000
         SetScale(0x1000, 0xCCC, 0x1000)
         x = -36.0
-        y = -190.0
-        vely = -102.0
+        y = -DISPLAY_BOUND_Y
+        vely = -DISPLAY_BOUND_LOWER_Y
         z = 0
         setanim(BOX_DISPLAY)
         DisplayFrame = 0
@@ -732,7 +735,7 @@ state Bonus_Reward_Items { // 11
                 PlayDisplayFrame()
             } while (frametime - start < v0)
         }
-        vely = -190.0
+        vely = -DISPLAY_BOUND_Y
         do {
             PlayDisplayFrame()
         } while (y != vely)
@@ -753,7 +756,7 @@ state Bonus_Player_Death { // 12
             }
             setfield(self, DisplayVarField, getfield(self, DisplayVarField) - 1.0)
             PlayDisplayFrame()
-            vely = -190.0
+            vely = -DISPLAY_BOUND_Y
             BONUSDEATHTIME = frametime
         }
         do {
@@ -897,54 +900,59 @@ inline sub KillDisplayChildren() {
     }
 }
 
+expr LANG_DE = 3.0
+expr LANG_ES = 1.0
+expr LANG_IT = 4.0
+expr LANG_FR = 2.0
+
 inline sub SetTextLanguage1(german, spanish, italian, french, english) {
-    if (var lang = GLOBAL_151; lang == 3.0) {
-        LocalizedTextFrame = german
+    if (var lang = GLOBAL_151; lang == LANG_DE) {
+        TextFrame = german
     }
-    else if (lang == 1.0) {
-        LocalizedTextFrame = spanish
+    else if (lang == LANG_ES) {
+        TextFrame = spanish
     }
-    else if (lang == 4.0) {
-        LocalizedTextFrame = italian
+    else if (lang == LANG_IT) {
+        TextFrame = italian
     }
-    else if (lang == 2.0) {
-        LocalizedTextFrame = french
+    else if (lang == LANG_FR) {
+        TextFrame = french
     }
     else {
-        LocalizedTextFrame = english
+        TextFrame = english
     }
 }
 
 inline sub SetTextLanguage2(german, spanish, italian, fallback) {
-    if (var lang = GLOBAL_151; lang == 3.0) {
-        LocalizedTextFrame = german
+    if (var lang = GLOBAL_151; lang == LANG_DE) {
+        TextFrame = german
     }
-    else if (lang == 1.0) {
-        LocalizedTextFrame = spanish
+    else if (lang == LANG_ES) {
+        TextFrame = spanish
     }
-    else if (lang == 4.0) {
-        LocalizedTextFrame = italian
+    else if (lang == LANG_IT) {
+        TextFrame = italian
     }
     else {
-        LocalizedTextFrame = fallback
+        TextFrame = fallback
     }
 }
 
 inline sub SetTextLanguage3(german, italian, spanish, french, english) {
-    if (var lang = GLOBAL_151; lang == 3.0) {
-        LocalizedTextFrame = german
+    if (var lang = GLOBAL_151; lang == LANG_DE) {
+        TextFrame = german
     }
-    else if (lang == 4.0) {
-        LocalizedTextFrame = italian
+    else if (lang == LANG_IT) {
+        TextFrame = italian
     }
-    else if (lang == 1.0) {
-        LocalizedTextFrame = spanish
+    else if (lang == LANG_ES) {
+        TextFrame = spanish
     }
-    else if (lang == 2.0) {
-        LocalizedTextFrame = french
+    else if (lang == LANG_FR) {
+        TextFrame = french
     }
     else {
-        LocalizedTextFrame = english
+        TextFrame = english
     }
 }
 
@@ -977,66 +985,66 @@ state Pause_Menu_Root { // 14
         if (MenuLevelNumber) {
             MenuHasLevelNumber = MenuLevelNumber > 0
         }
-        if (var lang = GLOBAL_151; lang == 3.0) {
+        if (var lang = GLOBAL_151; lang == LANG_DE) {
             if (MenuHasLevelNumber) {
-                LocalizedTextFrame = 45.0
+                TextFrame = 45.0
             }
             else {
-                LocalizedTextFrame = 46.0
+                TextFrame = 46.0
             }
         }
-        else if (lang == 1.0) {
+        else if (lang == LANG_ES) {
             if (MenuHasLevelNumber) {
-                LocalizedTextFrame = 47.0
+                TextFrame = 47.0
             }
             else {
-                LocalizedTextFrame = 48.0
+                TextFrame = 48.0
             }
         }
-        else if (lang == 4.0) {
+        else if (lang == LANG_IT) {
             if (MenuHasLevelNumber) {
-                LocalizedTextFrame = 49.0
+                TextFrame = 49.0
             }
             else {
-                LocalizedTextFrame = 46.0
+                TextFrame = 46.0
             }
         }
-        else if (lang == 2.0) {
+        else if (lang == LANG_FR) {
             if (MenuHasLevelNumber) {
-                LocalizedTextFrame = 50.0
+                TextFrame = 50.0
             }
             else {
-                LocalizedTextFrame = 51.0
+                TextFrame = 51.0
             }
         }
         else {
             if (MenuHasLevelNumber) {
-                LocalizedTextFrame = 52.0
+                TextFrame = 52.0
             }
             else {
-                LocalizedTextFrame = 46.0
+                TextFrame = 46.0
             }
             if (GLOBAL_109 == 2) {
-                LocalizedTextFrame = 53.0
+                TextFrame = 53.0
             }
         }
-        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, x - 80.0, -23.0, 0, 0, offsetof(MenuLevelNumber)) // Level / boss number
+        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, x - 80.0, -23.0, 0, 0, offsetof(MenuLevelNumber)) // Level / boss number
         MenuLevelNumber = abs(MenuLevelNumber)
         statusb = FLAG_NO_CAMERA_CLIP | FLAG_STRING_CENTER
         SetTextLanguage1(54.0, 55.0, 56.0, 57.0, 58.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, 0, getanim(TEXT), LocalizedTextFrame, 0, 0, 0) // Resume button
+        spawn2(DispC, S_MENU_BUTTON, 1, 0, getanim(TEXT), TextFrame, 0, 0, 0) // Resume button
         SetTextLanguage2(59.0, 60.0, 61.0, 62.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, 1.0, getanim(TEXT), LocalizedTextFrame, 0, -18.0, 0) // Options button
+        spawn2(DispC, S_MENU_BUTTON, 1, 1.0, getanim(TEXT), TextFrame, 0, -18.0, 0) // Options button
         if (field_61 >= 3.0) {
             SetTextLanguage1(63.0, 64.0, 65.0, 66.0, 67.0)
             if (LEVEL != LEVEL_WarpRoom) {
-                LocalizedTextFrame = 9.0
+                TextFrame = 9.0
             }
-            MenuExitPromptFrame = LocalizedTextFrame
-            spawn2(DispC, S_MENU_BUTTON, 1, 2.0, getanim(TEXT), LocalizedTextFrame, 0, -36.0, 0) // Quit / Exit level button
+            MenuExitPromptFrame = TextFrame
+            spawn2(DispC, S_MENU_BUTTON, 1, 2.0, getanim(TEXT), TextFrame, 0, -36.0, 0) // Quit / Exit level button
             if (field_61 >= 4.0) {
                 SetTextLanguage1(4.0, 69.0, 70.0, 71.0, 72.0)
-                spawn2(DispC, S_MENU_BUTTON, 1, 3.0, getanim(TEXT), LocalizedTextFrame, 0, -54.0, 0) // Restart Trial button
+                spawn2(DispC, S_MENU_BUTTON, 1, 3.0, getanim(TEXT), TextFrame, 0, -54.0, 0) // Restart Trial button
             }
         }
         sleepnull()
@@ -1127,32 +1135,32 @@ state Pause_Menu_Options { // 15
         VibrationOBJ = 0
         field_61 = 1.0
         SetTextLanguage1(73.0, 74.0, 75.0, 76.0, 77.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, 0, getanim(TEXT), LocalizedTextFrame, 0, 36.0, 0) // Sound options button
+        spawn2(DispC, S_MENU_BUTTON, 1, 0, getanim(TEXT), TextFrame, 0, 36.0, 0) // Sound options button
         if (miscfunc(null, player, 20, 12) >= 3.32s) {
             spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), 78.0, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Vibration On/Off button
             VibrationOBJ = objectspawned
             vecz = field_61
             field_61 += 1.0
         }
-        if (var lang = GLOBAL_151; lang == 3.0) {
-            LocalizedTextFrame = 79.0
+        if (var lang = GLOBAL_151; lang == LANG_DE) {
+            TextFrame = 79.0
         }
-        else if (lang == 4.0) {
-            LocalizedTextFrame = 80.0
+        else if (lang == LANG_IT) {
+            TextFrame = 80.0
         }
         else {
-            LocalizedTextFrame = 81.0
+            TextFrame = 81.0
         }
-        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), LocalizedTextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Screen centering button
+        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), TextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Screen centering button
         ScreenCenterOBJ = objectspawned
         field_63 = field_61
         field_61 += 1.0
         SetTextLanguage3(82.0, 83.0, 84.0, 85.0, 86.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), LocalizedTextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Language button
+        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), TextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Language button
         vecy = field_61
         field_61 += 1.0
         SetTextLanguage1(87.0, 88.0, 89.0, 90.0, 91.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), LocalizedTextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Done button
+        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), TextFrame, 0, ((field_61 >> 8) - 2) * -18.0, 0) // Done button
         field_61 += 1.0
         UpdateOptionValue()
         sleepnull()
@@ -1209,10 +1217,10 @@ sub UpdateOptionValue(unused_option, VibrationOBJ, ScreenCenterOBJ) __trans {
     if (VibrationOBJ) {
         interrupter = VibrationOBJ
         if (GLOBAL_32 & 2) {
-            if (var lang = GLOBAL_151; lang == 3.0) {
+            if (var lang = GLOBAL_151; lang == LANG_DE) {
                 interrupter -> animframe = 92.0
             }
-            else if (lang == 1.0) {
+            else if (lang == LANG_ES) {
                 interrupter -> animframe = 93.0
             }
             else {
@@ -1220,10 +1228,10 @@ sub UpdateOptionValue(unused_option, VibrationOBJ, ScreenCenterOBJ) __trans {
             }
         }
         else {
-            if (var lang = GLOBAL_151; lang == 3.0) {
+            if (var lang = GLOBAL_151; lang == LANG_DE) {
                 interrupter -> animframe = 95.0
             }
-            else if (lang == 1.0) {
+            else if (lang == LANG_ES) {
                 interrupter -> animframe = 96.0
             }
             else {
@@ -1404,30 +1412,30 @@ state Pause_Menu_Confirm_Exit { // 18
         KillDisplayChildren()
         spawn2(DispC, S_MENU_BUTTON, 1, -1.0, getanim(TEXT), prompt_frame, 0, 36.0, 0) // Quit confirmation heading
         field_61 = 0
-        if (var lang = GLOBAL_151; lang == 2.0) {
-            LocalizedTextFrame = 109.0
+        if (var lang = GLOBAL_151; lang == LANG_FR) {
+            TextFrame = 109.0
         }
-        else if (lang == 3.0) {
-            LocalizedTextFrame = 110.0
+        else if (lang == LANG_DE) {
+            TextFrame = 110.0
         }
-        else if (lang == 4.0 || lang == 1.0) {
-            LocalizedTextFrame = 111.0
+        else if (lang == LANG_IT || lang == LANG_ES) {
+            TextFrame = 111.0
         }
         else {
-            LocalizedTextFrame = 112.0
+            TextFrame = 112.0
         }
-        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), LocalizedTextFrame, 0, (field_61 >> 8) * -18.0, 0) // Yes button
+        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), TextFrame, 0, (field_61 >> 8) * -18.0, 0) // Yes button
         field_61 += 1.0
-        if (var lang = GLOBAL_151; lang == 2.0) {
-            LocalizedTextFrame = 113.0
+        if (var lang = GLOBAL_151; lang == LANG_FR) {
+            TextFrame = 113.0
         }
-        else if (lang == 3.0) {
-            LocalizedTextFrame = 114.0
+        else if (lang == LANG_DE) {
+            TextFrame = 114.0
         }
         else {
-            LocalizedTextFrame = 115.0
+            TextFrame = 115.0
         }
-        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), LocalizedTextFrame, 0, (field_61 >> 8) * -18.0, 0) // No button
+        spawn2(DispC, S_MENU_BUTTON, 1, field_61, getanim(TEXT), TextFrame, 0, (field_61 >> 8) * -18.0, 0) // No button
         field_61 += 1.0
         sleepnull()
     }
@@ -1477,23 +1485,23 @@ state Pause_Menu_Sound_Options { // 19
         spawn2(DispC, S_MENU_BUTTON, 1, 2.0, getanim(TEXT), 118.0, 0, -18.0, 0) // Sound effects volume value
         SFXVolOBJ = objectspawned
         UpdateSoundOptionValue()
-        if (var lang = GLOBAL_151; lang == 3.0) {
-            LocalizedTextFrame = 119.0
+        if (var lang = GLOBAL_151; lang == LANG_DE) {
+            TextFrame = 119.0
         }
-        else if (lang == 2.0) {
-            LocalizedTextFrame = 120.0
+        else if (lang == LANG_FR) {
+            TextFrame = 120.0
         }
-        else if (lang == 1.0 || lang == 4.0) {
-            LocalizedTextFrame = 121.0
+        else if (lang == LANG_ES || lang == LANG_IT) {
+            TextFrame = 121.0
         }
         else {
-            LocalizedTextFrame = 122.0
+            TextFrame = 122.0
         }
-        spawn2(DispC, S_MENU_BUTTON, 1, 1.0, getanim(TEXT), LocalizedTextFrame, 0, 36.0, 0) // Music volume button
+        spawn2(DispC, S_MENU_BUTTON, 1, 1.0, getanim(TEXT), TextFrame, 0, 36.0, 0) // Music volume button
         SetTextLanguage1(123.0, 124.0, 125.0, 126.0, 127.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, 2.0, getanim(TEXT), LocalizedTextFrame, 0, 0, 0) // Sound effects button
+        spawn2(DispC, S_MENU_BUTTON, 1, 2.0, getanim(TEXT), TextFrame, 0, 0, 0) // Sound effects button
         SetTextLanguage1(87.0, 88.0, 89.0, 90.0, 91.0)
-        spawn2(DispC, S_MENU_BUTTON, 1, 3.0, getanim(TEXT), LocalizedTextFrame, 0, -36.0, 0) // Done button
+        spawn2(DispC, S_MENU_BUTTON, 1, 3.0, getanim(TEXT), TextFrame, 0, -36.0, 0) // Done button
         sleepnull()
     }
     trans {
@@ -1551,7 +1559,7 @@ state Pause_Menu_Sound_Options { // 19
 sub UpdateSoundOptionValue(MonoStereoOBJ, MusicVolOBJ, SFXVolOBJ) __trans {
     interrupter = MonoStereoOBJ
     if (!MONOSOUND) {
-        if (var lang = GLOBAL_151; lang == 1.0) {
+        if (var lang = GLOBAL_151; lang == LANG_ES) {
             interrupter -> animframe = 128.0
         }
         else {
@@ -1673,7 +1681,7 @@ state Pause_Menu_Init { // 20
             v2 = GLOBAL_178
             CountRelicTiers(v2, v1)
             PauseCompletionPercent = PauseCrystalCount + (PauseGemCount + (groundy + (groundvel + (density + field_63))))
-            if (GLOBAL_27 & 64) {
+            if (GLOBAL_27 & 64) { // Bosses
                 PauseCompletionPercent += 1
             }
             if (GLOBAL_27 & 8) {
@@ -1757,22 +1765,22 @@ state Pause_Menu_Item_Panel { // 21
 
 sub SpawnCrystalPanel(base_x, base_y) {
     SetTextLanguage1(132.0, 133.0, 134.0, 135.0, 136.0)
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Crystals heading
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Crystals heading
     spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), 137.0, base_x + 6.0, base_y + 21.0, 0, 0, offsetof(PauseCrystalCount)) // Crystal count
     spawn2(DispC, S_INVENTORY, 1, REWARD_CRYSTAL, base_x + 110.0, base_y, 4)
 }
 
 sub SpawnGemPanel(base_x, base_y) {
-    if (var lang = GLOBAL_151; lang == 3.0) {
-        LocalizedTextFrame = 138.0
+    if (var lang = GLOBAL_151; lang == LANG_DE) {
+        TextFrame = 138.0
     }
-    else if (lang == 2.0 || lang == 1.0 || lang == 4.0) {
-        LocalizedTextFrame = 139.0
+    else if (lang == LANG_FR || lang == LANG_ES || lang == LANG_IT) {
+        TextFrame = 139.0
     }
     else {
-        LocalizedTextFrame = 140.0
+        TextFrame = 140.0
     }
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Gems heading
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Gems heading
     {
         var v1 = SAVEDGEMPOOL1
         var v2 = SAVEDGEMPOOL2
@@ -1812,66 +1820,66 @@ sub SpawnGemPanel(base_x, base_y) {
         PanelTotalitemCount += 1
     }
 
-    if (var lang = GLOBAL_151; lang == 3.0) {
-        LocalizedTextFrame = 142.0
+    if (var lang = GLOBAL_151; lang == LANG_DE) {
+        TextFrame = 142.0
     }
-    else if (lang == 2.0 || lang == 1.0 || lang == 4.0) {
-        LocalizedTextFrame = 143.0
+    else if (lang == LANG_FR || lang == LANG_ES || lang == LANG_IT) {
+        TextFrame = 143.0
     }
     else {
-        LocalizedTextFrame = 144.0
+        TextFrame = 144.0
     }
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x, base_y - 21.0, 0, 0, offsetof(PanelCollectedItemCount)) // Gem count / total
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x, base_y - 21.0, 0, 0, offsetof(PanelCollectedItemCount)) // Gem count / total
 }
 
 sub SpawnRelicPanel(base_x, base_y) {
     SetTextLanguage1(145.0, 146.0, 147.0, 148.0, 149.0)
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Relics heading
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Relics heading
     {
         var row_y = base_y + 45.0
         if (groundvel) {
-            if (var lang = GLOBAL_151; lang == 3.0) {
-                LocalizedTextFrame = 150.0
+            if (var lang = GLOBAL_151; lang == LANG_DE) {
+                TextFrame = 150.0
             }
-            else if (lang == 1.0 || lang == 4.0) {
-                LocalizedTextFrame = 151.0
+            else if (lang == LANG_ES || lang == LANG_IT) {
+                TextFrame = 151.0
             }
-            else if (lang == 2.0) {
-                LocalizedTextFrame = 152.0
+            else if (lang == LANG_FR) {
+                TextFrame = 152.0
             }
             else {
-                LocalizedTextFrame = 153.0
+                TextFrame = 153.0
             }
-            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x - 16.0, row_y, 0, 0, 0x3500) // Platinum relic count
+            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x - 16.0, row_y, 0, 0, 0x3500) // Platinum relic count
             row_y -= 20.0
         }
         if (density) {
-            if (var lang = GLOBAL_151; lang == 1.0 || lang == 4.0) {
-                LocalizedTextFrame = 154.0
+            if (var lang = GLOBAL_151; lang == LANG_ES || lang == LANG_IT) {
+                TextFrame = 154.0
             }
-            else if (lang == 2.0) {
-                LocalizedTextFrame = 155.0
+            else if (lang == LANG_FR) {
+                TextFrame = 155.0
             }
             else {
-                LocalizedTextFrame = 156.0
+                TextFrame = 156.0
             }
-            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x - 16.0, row_y, 0, 0, 0x3A00) // Gold relic count
+            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x - 16.0, row_y, 0, 0, 0x3A00) // Gold relic count
             row_y -= 20.0
         }
         if (field_63 || !(density + groundvel)) {
-            if (var lang = GLOBAL_151; lang == 3.0 || lang == 2.0) {
-                LocalizedTextFrame = 157.0
+            if (var lang = GLOBAL_151; lang == LANG_DE || lang == LANG_FR) {
+                TextFrame = 157.0
             }
-            else if (lang == 1.0) {
-                LocalizedTextFrame = 158.0
+            else if (lang == LANG_ES) {
+                TextFrame = 158.0
             }
-            else if (lang == 4.0) {
-                LocalizedTextFrame = 159.0
+            else if (lang == LANG_IT) {
+                TextFrame = 159.0
             }
             else {
-                LocalizedTextFrame = 160.0
+                TextFrame = 160.0
             }
-            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x - 16.0, row_y, 0, 0, 0x3F00) // Sapphire relic count
+            spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x - 16.0, row_y, 0, 0, 0x3F00) // Sapphire relic count
         }
     }
     PanelCollectedItemCount = field_63 + (density + groundvel)
@@ -1897,7 +1905,7 @@ sub SpawnRelicPanel(base_x, base_y) {
 
 sub SpawnTimeRecordsPanel(base_x, base_y) {
     SetTextLanguage1(162.0, 163.0, 164.0, 165.0, 166.0)
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Times heading
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Times heading
     spawn2(DispC, S_TIMETRIAL_RECORD, 1, LEVEL, 0, base_x + 68.0, base_y + 35.0)
     spawn2(DispC, S_TIMETRIAL_RECORD, 1, LEVEL, 1, base_x + 68.0, base_y + 4.0)
     spawn2(DispC, S_TIMETRIAL_RECORD, 1, LEVEL, 2, base_x + 68.0, base_y - 23.0)
@@ -1906,7 +1914,7 @@ sub SpawnTimeRecordsPanel(base_x, base_y) {
 
 sub SpawnPowerPanel(base_x, base_y) {
     SetTextLanguage1(167.0, 168.0, 169.0, 170.0, 171.0)
-    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Powers heading
+    spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 69.0, 2, 0, 0x2500) // Powers heading
     var featured_power, power_count
     misc = 0
     CountPoolBits(GLOBAL_160)
@@ -1914,7 +1922,7 @@ sub SpawnPowerPanel(base_x, base_y) {
     featured_power = power_count - (field_61 / 5.0) % power_count + 1
     if (power_count == 0) {
         SetTextLanguage1(172.0, 173.0, 174.0, 175.0, 176.0)
-        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, base_x + 67.0, base_y + 9.0, 2, 0, 0x2500) // No powers text
+        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, base_x + 67.0, base_y + 9.0, 2, 0, 0x2500) // No powers text
     }
     var icon_x = base_x + 8.0
     var small_power_bits = GLOBAL_160 & (31 & ~(1 << featured_power))
@@ -1972,11 +1980,11 @@ state HUD_Collectable_Display { // 23
                 animseq = 0
             }
             statusb = FLAG_INVISIBLE
-            y = -102.0
+            y = -DISPLAY_BOUND_LOWER_Y
             var0 = 0
         }
         else {
-            y = -190.0
+            y = -DISPLAY_BOUND_Y
             var0 = getfield(player, DisplayVarField)
         }
         x = x_pos
@@ -1991,7 +1999,7 @@ state HUD_Collectable_Display_Show { // 24
     }
     trans {
         changestateif(HUD_Collectable_Display_Hide, frametime - statetime >= 1.5s && DisplayRewardType < REWARD_RELIC)
-        y = seek(y, -102.0, 10.0)
+        y = seek(y, -DISPLAY_BOUND_LOWER_Y, 10.0)
         roty = spd(roty, 180deg)
         if (DisplayRewardType >= REWARD_CRYSTAL && getfield(player, DisplayVarField) > var0) {
             statusb &= ~FLAG_INVISIBLE
@@ -2017,9 +2025,9 @@ state HUD_Collectable_Display_Hide { // 25
     statusc 0x0
     code() {
         do {
-            y = seek(y, -190.0, 4.0)
+            y = seek(y, -DISPLAY_BOUND_Y, 4.0)
             playframe(DisplayFrame)
-        } while (y != -190.0)
+        } while (y != -DISPLAY_BOUND_Y)
         sendevent(Event1, parent)
     }
     trans {
@@ -2170,7 +2178,7 @@ state Collectable_Manager_Init { // 26
 state Collectable_Manager { // 27
     code() {
         statusb |= FLAG_INVISIBLE
-        y = 190.0
+        y = DISPLAY_BOUND_Y
         sleepframe(DisplayFrame)
     }
     event(e, a) {
@@ -2416,7 +2424,7 @@ state HUD_TimeTrial_Start { // 33
                     save (scalex, scaley, scalez) {
                         TextScaleDefault()
                         SetTextLanguage1(177.0, 178.0, 179.0, 180.0, 181.0)
-                        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), LocalizedTextFrame, 0, 18.0, 2, 8.0, 0x2500) // Entering Time Trial text
+                        spawn2(DispC, S_MENU_TEXT, 1, getanim(TEXT), TextFrame, 0, 18.0, 2, 8.0, 0x2500) // Entering Time Trial text
                     }
                 }
                 GLOBAL_139 |= 0x10
@@ -2487,11 +2495,11 @@ sub TimeTrialTrans() {
     TextColorDefault()
     if ((GAMEFLAGS & 0x1000)
         && !((player -> stateflag & 0x8000000)
-            || ((player -> stateflag & 0x20)
-                && !(player -> stateflag & 0x2)
+            || ((player -> stateflag & 32)
+                && !(player -> stateflag & 2)
                 && !(player -> stateflag & 0x1000)
                 && !(player -> stateflag & 0x400)))
-        && !(stateflag & 0x20)) {
+        && !(stateflag & 32)) {
             if (TrialFreezeFrames) {
                 GLOBAL_173 = frametime - TrialElapsedFrames
                 TrialFreezeFrames -= 1
@@ -2562,7 +2570,6 @@ state HUD_TimeTrial_End { // 34
         } while (1)
     }
 }
-
 
 sub TextBlink() {
     if (time(12) < 2) {
@@ -2930,7 +2937,7 @@ sub TextColorDefault() {
     SetTextColor(0x1FF, 0x190, 0, 0x1FF, 0, 0)
 }
 
-state STATE_41 { // 41 // no idea what the fuck this is, cant find it used anywhere
+state STATE_41 { // 41
     code(x_pos, y_pos, arg) {
         GLOBAL_110 = self
         x = x_pos
@@ -2951,9 +2958,9 @@ state STATE_41 { // 41 // no idea what the fuck this is, cant find it used anywh
         playnull()
         do {
             roty += degdist(roty, troty) / 12
-            scalex = seek(scalex, var0, spd(1S))
-            scaley = seek(scaley, var0, spd(1S))
-            scalez = seek(scalez, var0, spd(1S))
+            scalex = seek(scalex, var0, spd(16.0))
+            scaley = seek(scaley, var0, spd(16.0))
+            scalez = seek(scalez, var0, spd(16.0))
             if (player -> stateflag & 0x800) {
                 playnull()
             }
@@ -2981,7 +2988,7 @@ state STATE_41 { // 41 // no idea what the fuck this is, cant find it used anywh
                 var0 = 0
             }
             else {
-                var0 = 1.12S
+                var0 = 0x11EB
             }
         }
     }
@@ -3008,7 +3015,7 @@ state TimeTrial_Record_Row { // 42
             v3 = sp
             v4 = 0
             if (!record_time || !record_name) {
-                if (var lang = GLOBAL_151; lang == 3.0) {
+                if (var lang = GLOBAL_151; lang == LANG_DE) {
                     if (rank == 0) {
                         record_name = 0x202E31
                     }
@@ -3019,7 +3026,7 @@ state TimeTrial_Record_Row { // 42
                         record_name = 0x202E33
                     }
                 }
-                else if (lang == 1.0 || lang == 4.0) {
+                else if (lang == LANG_ES || lang == LANG_IT) {
                     if (rank == 0) {
                         record_name = 0x204F31
                     }
@@ -3030,7 +3037,7 @@ state TimeTrial_Record_Row { // 42
                         record_name = 0x204F33
                     }
                 }
-                else if (lang == 2.0) {
+                else if (lang == LANG_FR) {
                     if (rank == 0) {
                         record_name = 0x524531
                     }
@@ -3071,9 +3078,9 @@ inline sub SetParentColor(r, g, b) {
 
 state Crystal_Glow { // 43
     stateflag 0x40001
-    code(a0) {
+    code(enable_depth_tilt) {
         DisplayFrame = 0
-        if (a0) {
+        if (enable_depth_tilt) {
             if (LEVEL == 0xF00) {
                 DisplayFrame = 1
                 DisplayVar13 = 0x88
@@ -3113,10 +3120,10 @@ state Crystal_Glow { // 43
         y = parent -> y
         z = parent -> z
         statusb = parent -> statusb & FLAG_INVISIBLE
-        if (var glint = frametime & 31; glint == 0 || glint == 2) {
+        if (var flash = frametime & 31; flash == 0 || flash == 2) {
             SetParentColor(0xF4, 0xAF, 0xFF)
         }
-        else if (glint == 1) {
+        else if (flash == 1) {
             SetParentColor(0xFF, 0xFF, 0xFF)
         }
         else {
@@ -3265,4 +3272,3 @@ state Crystal_Glow { // 43
         }
     }
 }*/
-
