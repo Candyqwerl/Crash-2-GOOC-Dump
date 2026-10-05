@@ -128,7 +128,7 @@ var BoxVar1, BoxVar2, BoxVar3, BoxVar4, BoxVar5, BoxVar6,
     BoxVar7, BoxVar8, BoxVar9, BoxVar10, BoxVar11, BoxVar12,
     BoxVar13, BoxVar14, BoxVar15, BoxVar16, BoxVar17, BoxVar18
 
-// Common
+// Field aliases
 expr BoxFlags                 = invincibletime
 expr BoxReward                = speed
 expr BoxBelow                 = field_63
@@ -139,19 +139,19 @@ expr BoxTransFunc             = BoxVar4
 expr BoxCollisionMask         = BoxVar5
 expr BoxPathParent            = BoxVar5
 expr BoxBaseY                 = BoxVar10
-// Wave
+
 expr BoxWaveOriginX           = BoxVar5
 expr BoxWaveOriginZ           = BoxVar11
-// Slot
+
 expr BoxSlotLastChangeTime    = BoxVar5
 expr BoxSlotInterval          = BoxVar10
 expr BoxSlotIndex             = BoxVar11
-// Spring
+
 expr BoxSpringPopulsion       = BoxVar8
-// Fruit
+
 expr BoxFruitHits             = BoxVar8
 expr BoxFruitBreakPoint       = BoxVar9
-// TNT/Nitro
+
 expr BoxFlashInterval         = BoxVar6
 expr BoxFlashOffset           = BoxVar7
 expr BoxTNTFuse               = BoxVar9
@@ -168,8 +168,9 @@ sub BoxTransWave() { // S-0
     if (((BoxWaveOriginX << 2) + BoxWaveOriginZ) & 0x2000) {
         phase = -phase
     }
-    var s = sin(phase)
-    var c = cos(phase)
+    var c, s
+    s = sin(phase)
+    c = cos(phase)
     x = BoxWaveOriginX + (s << 1)
     z = BoxWaveOriginZ + (c << 1)
     y = BoxBaseY - (s << 2)
@@ -201,7 +202,7 @@ sub BoxTransAtlantis() { // S-94
     }
     if (LEVEL == LEVEL_DeepTrouble || LEVEL == LEVEL_UnderPressure) {
         if (collider) {
-            changestateif(Box_TNT_Countdown, spawn == S_BOX_NORMAL && !(stateflag & 0x2))
+            changestateif(Box_TNT_Countdown, spawn == S_BOX_TNT && !(stateflag & 0x2))
         }
     }
 }
@@ -214,7 +215,7 @@ sub BoxInitWaterEffect() { // S-158
     BoxVar13 = 2
     BoxVar14 = 0x3F3F3F
     BoxVar15 = 0
-    BoxVar16 = & vecx
+    BoxVar16 = &vecx
     BoxVar17 = 30
     BoxVar18 = -0x50
     SetVec(0)
@@ -226,7 +227,8 @@ sub BoxTransWater() { // S-177
 }
 
 sub BoxTransWaterSurface() { // S-195
-    var c = cos((frametime + ((x + z) / 2000)) << 6)
+    var c
+    c = cos((frametime + ((x + z) / 2000)) << 6)
     y = GLOBAL_118 - (0.4m + (c << 2))
     if (y < groundy) {
         rotx = degseek(rotx, 0deg, 180deg)
@@ -315,8 +317,8 @@ sub BoxCheckSpinEvent(e, a) { // S-503
                             interrupter -> BoxStackLastSpinHitTime = frametime
                             interrupter = interrupter -> BoxBelow
                         } while (interrupter)
+                        interrupter = s_interrupter
                     }
-                    interrupter = s_interrupter
                     eventaccepted = true
                 }
                 else {
@@ -336,15 +338,12 @@ sub BoxTriggerTargets() { // S-566
     do (var obj_id = BoxGhostTargetStart) {
         if (obj_id && !(BoxFlags & BOX_FLAG_NO_GHOST)) {
             interrupter = objectget(obj_id)
-            if (interrupter) {
+            eventaccepted = interrupter
+            if (eventaccepted) {
                 sendevent(EventTriggered, interrupter)
-                eventaccepted = interrupter
-                if (eventaccepted) {
-                    sendevent(EventTriggered, interrupter)
-                }
-                if (!eventaccepted) {
-                    entitysetstate(obj_id, 1)
-                }
+            }
+            if (!eventaccepted) {
+                entitysetstate(obj_id, 1)
             }
         }
     } while ({ obj_id += 1.0 }; obj_id <= BoxGhostTargetEnd)
@@ -358,9 +357,7 @@ sub BoxCheckDDA() { // S-586
             if (entitygetstate(3) || ((lives && getfield(player, 65.0) + 3.0 >= lives) || (BoxFlags & BOX_FLAG_NO_REWARD))) {
                 if (spawn == S_BOX_1UP) {
                     spawn = S_BOX_PICKUP
-                    animseq = getanim(BOX_NORMAL)
-                    stalltime = 2
-                    animframe = 0
+                    SetBoxAnim(BOX_NORMAL, 2, 0)
                 }
                 if (GLOBAL_173) {
                     BoxReward = 0
@@ -396,9 +393,7 @@ sub BoxCheckDDA() { // S-586
                     && (player -> stateflag & 0x2000000) && player_health >= 2.0) || ((BoxFlags & BOX_FLAG_NO_REWARD) && !GLOBAL_173)) {
                         if (spawn == S_BOX_DOCTOR) {
                             spawn = S_BOX_PICKUP
-                            animseq = getanim(BOX_NORMAL)
-                            stalltime = 2
-                            animframe = 0
+                            SetBoxAnim(BOX_NORMAL, 2, 0)
                         }
                         if (GLOBAL_173) {
                             BoxReward = 0
@@ -421,15 +416,11 @@ state Box_Normal_Spawn { // 0
             entity = parent -> entity
         }
         if (spawn == S_BOX_NORMAL) {
-            animseq = getanim(BOX_NORMAL)
-            stalltime = 0
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 0, 0)
             v0 = 100.0
         }
         else if (spawn == S_BOX_PICKUP) {
-            animseq = getanim(BOX_NORMAL)
-            stalltime = 2
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 2, 0)
             var lives = fieldval(ENTITY_FIELD_DDA_LIVES)
             if (!entitygetstate(3) && lives && getfield(player, 65.0) < lives) {
                 v0 = REWARD_ID_1UP
@@ -439,21 +430,15 @@ state Box_Normal_Spawn { // 0
             }
         }
         else if (spawn == S_BOX_DOCTOR) {
-            animseq = getanim(BOX_NORMAL)
-            stalltime = 3
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 3, 0)
             v0 = REWARD_ID_DOCTOR
         }
         else if (spawn == S_BOX_1UP) {
-            animseq = getanim(BOX_NORMAL)
-            stalltime = 1
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 1, 0)
             v0 = REWARD_ID_1UP
         }
         else {
-            animseq = getanim(BOX_NORMAL)
-            stalltime = 0
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 0, 0)
             v0 = 100.0
         }
         if (GLOBAL_173) {
@@ -465,9 +450,7 @@ state Box_Normal_Spawn { // 0
             if (v0 < REWARD_ID_1UP || v0 == 100.0 || v0 == 101.0) {
                 reward = 0
                 v0 = 0
-                animseq = getanim(BOX_NORMAL)
-                stalltime = 0
-                animframe = 0
+                SetBoxAnim(BOX_NORMAL, 0, 0)
             }
             if (timetrialreward) {
                 reward = timetrialreward
@@ -475,24 +458,16 @@ state Box_Normal_Spawn { // 0
             }
             var reward = reward
             if (reward == 111.0) {
-                animseq = getanim(BOX_NORMAL)
-                stalltime = 4
-                animframe = 0
+                SetBoxAnim(BOX_NORMAL, 4, 0)
             }
             else if (reward == 112.0) {
-                animseq = getanim(BOX_NORMAL)
-                stalltime = 5
-                animframe = 0
+                SetBoxAnim(BOX_NORMAL, 5, 0)
             }
             else if (reward == 113.0) {
-                animseq = getanim(BOX_NORMAL)
-                stalltime = 6
-                animframe = 0
+                SetBoxAnim(BOX_NORMAL, 6, 0)
             }
             else if (reward == REWARD_ID_DOCTOR) {
-                animseq = getanim(BOX_NORMAL)
-                stalltime = 3
-                animframe = 0
+                SetBoxAnim(BOX_NORMAL, 3, 0)
                 spawn = S_BOX_DOCTOR
             }
         }
@@ -535,34 +510,24 @@ sub BoxEventNormal(e, a) {
     if (e == EventTimeTrial && (BoxReward <= REWARD_ID_1UP || BoxReward == 100.0 || BoxReward == 101.0)) {
         accev()
         BoxReward = 0
-        setanim(BOX_NORMAL)
-        stalltime = 0
-        animframe = 0
+        SetBoxAnim(BOX_NORMAL, 0, 0)
         var reward = fieldval(ENTITY_FIELD_TIMETRIAL_REWARD)
         if (reward) {
             BoxReward = reward
             BoxFlags |= BOX_FLAG_AUTO_COLLECT
         }
         if (BoxReward == REWARD_ID_DOCTOR) {
-            setanim(BOX_NORMAL)
-            stalltime = 3
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 3, 0)
             spawn = S_BOX_DOCTOR
         }
         else if (BoxReward == 111.0) {
-            setanim(BOX_NORMAL)
-            stalltime = 4
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 4, 0)
         }
         else if (BoxReward == 112.0) {
-            setanim(BOX_NORMAL)
-            stalltime = 5
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 5, 0)
         }
         else if (BoxReward == 113.0) {
-            setanim(BOX_NORMAL)
-            stalltime = 6
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 6, 0)
         }
     }
 }
@@ -658,7 +623,7 @@ sub BoxInit(reward, flags, ghost_target) __trans __args(r) { // S-1285
     BoxBelow = 0
     field_60 = y
     groundy = y
-    pathprog = 5 + rand(2)
+    pathprog = 0.5deg + rand(0.2deg)
     BoxStackLastSpinHitTime = 0s
     if (entity) {
         movetolist(4.0)
@@ -710,7 +675,7 @@ sub BoxBreak() { // S-1709
     }
 }
 
-state STATE_1 { // 1
+state Box_Normal { // 1
     statusc 0
     code => sub BoxSleep
     event => sub BoxEventNormal
@@ -744,7 +709,7 @@ state Box_Iron { // 3
         if (e == EventSpinHit || e == EventSlideHit || e == EventSlamHit) {
             rejev()
             if (frametime - statetime >= 0.8s) {
-                SoundPitchDefault(0.23)
+                SoundPitchDefault()
                 sounddecay(0.625)
                 soundplay([iht0A], 0.4V)
                 statetime = frametime
@@ -752,7 +717,7 @@ state Box_Iron { // 3
         }
         if (e == EventHit, interrupter, interrupter -> spawn == S_BOX_CLOCK) {
             accev()
-            SoundPitchDefault(0.23)
+            SoundPitchDefault()
             sounddecay(0.625)
             soundplay([iht0A], 0.4V)
         }
@@ -823,7 +788,8 @@ state Box_Slot { // 7
     statusc 0
     trans => sub BoxTransCommon
     code(reward, flags, ghost_target, mask) {
-        // mask enables positions 0 to 31; position modulo 5 sets the displayed type
+        // mask: bits 0 to 31 enable slots (1 = enabled, 0 = skipped)
+        // 5 bit cycle order is: empty, pickup, life, tnt, doctor; repeats from bit 0
         changestateif(Box_Normal_Spawn, GLOBAL_173, reward, flags, ghost_target)
         flags |= BOX_FLAG_AUTO_COLLECT
         BoxInit(100.0)
@@ -997,7 +963,7 @@ state Box_Ghost_Spawn { // 11
             BoxGhostSelectAnim(reward)
         }
         else {
-            setanim(BOX_ACTION_NITRO_2, 0)
+            setanim(BOX_GHOST, 0)
         }
         BoxInit(100.0)
         BoxCheckDDA()
@@ -1061,20 +1027,14 @@ sub BoxGhostSelectAnim(reward) { // S-2170
         setanim(BOX_SPRING, 0)
     }
     else if (spawn == S_BOX_NORMAL) {
-        setanim(BOX_NORMAL)
-        stalltime = 0
-        animframe = 0
+        SetBoxAnim(BOX_NORMAL, 0, 0)
     }
     else if (spawn == S_BOX_1UP) {
-        setanim(BOX_NORMAL)
-        stalltime = 1
-        animframe = 0
+        SetBoxAnim(BOX_NORMAL, 1, 0)
         BoxReward = REWARD_ID_1UP
     }
     else if (spawn == S_BOX_DOCTOR) {
-        setanim(BOX_NORMAL)
-        stalltime = 3
-        animframe = 0
+        SetBoxAnim(BOX_NORMAL, 3, 0)
         BoxReward = REWARD_ID_DOCTOR
     }
     else if (spawn == S_BOX_FRUIT) {
@@ -1087,9 +1047,7 @@ sub BoxGhostSelectAnim(reward) { // S-2170
         setanim(BOX_ACTION_NITRO_1, 0)
     }
     else if (spawn == S_BOX_PICKUP) {
-        setanim(BOX_NORMAL)
-        stalltime = 2
-        animframe = 0
+        SetBoxAnim(BOX_NORMAL, 2, 0)
     }
     else if (spawn == S_BOX_NITRO) {
         setanim(BOX_NITRO, 0)
@@ -1099,19 +1057,13 @@ sub BoxGhostSelectAnim(reward) { // S-2170
     }
     else if (spawn == S_BOX_GHOST) {
         if (reward == REWARD_ID_1UP) {
-            setanim(BOX_NORMAL)
-            stalltime = 1
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 1, 0)
         }
         else if (reward == REWARD_ID_DOCTOR) {
-            setanim(BOX_NORMAL)
-            stalltime = 3
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 3, 0)
         }
         else {
-            setanim(BOX_NORMAL)
-            stalltime = 0
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 0, 0)
         }
     }
     else if (spawn == S_BOX_GHOST_IRON || spawn == S_BOX_IRON) {
@@ -1154,7 +1106,7 @@ sub BoxGhostActivate(s) { // S-2263
             changestate(Box_Break_Reward)
         }
         else {
-            changestate(STATE_1)
+            changestate(Box_Normal)
         }
     }
 }
@@ -1735,11 +1687,9 @@ state Box_Fruit { // 30
         }
         if (e == EventTimeTrial) {
             BoxReward = 0
-            setanim(BOX_NORMAL)
-            stalltime = 0
-            animframe = 0
+            SetBoxAnim(BOX_NORMAL, 0, 0)
             spawn = S_BOX_NORMAL
-            accevcstate(STATE_1)
+            accevcstate(Box_Normal)
         }
     }
 }
@@ -1939,7 +1889,7 @@ sub EventBoxTNT(e, a) {
     if (!misc) {
         misc = 0
     }
-    unless (misc || misc) { // This is bugged, why are they ORing the same field?
+    unless (misc || misc) {
         accevcstate(Box_TNT_Countdown, e == Event14)
     }
     accevcstate(Box_TNT_Countdown, e == EventHitInvincible)
