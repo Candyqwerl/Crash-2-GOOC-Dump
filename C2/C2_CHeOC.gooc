@@ -3437,7 +3437,7 @@ state WarpLift_Move { // 31
             if (var0 >= 17.0 && var0 <= 25.0) {
                 if (((!(GLOBAL_21 & 1) || buttonpress(PAD_TRIANGLE)) && !(DEBUG && buttonpress(PAD_R2))) || FloorIndex == 4) {
                     if (FloorIndex == 0) {
-                        if (!(64 & GLOBAL_27) || buttonpress(PAD_TRIANGLE)) {
+                        if (!(0x40 & GLOBAL_27) || buttonpress(PAD_TRIANGLE)) {
                             CURRENTLEVEL = LEVEL_BossRipperRoo
                             var0 = CURRENTLEVEL
                             changestate(WarpLift_Load_Boss)
@@ -3451,7 +3451,7 @@ state WarpLift_Move { // 31
                         }
                     }
                     else if (FloorIndex == 2) {
-                        if (!(8 & GLOBAL_27) || buttonpress(PAD_TRIANGLE)) {
+                        if (!(0x8 & GLOBAL_27) || buttonpress(PAD_TRIANGLE)) {
                             CURRENTLEVEL = LEVEL_BossTazTiger
                             var0 = CURRENTLEVEL
                             changestate(WarpLift_Load_Boss)

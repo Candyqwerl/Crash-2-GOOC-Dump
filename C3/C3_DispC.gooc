@@ -282,8 +282,8 @@ expr PanelCollectedItemCount = DisplayVar18
 expr PanelTotalitemCount     = DisplayVar19
 
 /*--- Collectable Manager ---*/
-expr CollectedRewardType     = DisplayVar15
-expr CollectedRewardArg      = DisplayVar16
+expr CollectedRewardID       = DisplayVar15
+expr CollectedRewardParentID = DisplayVar16
 
 /*--- Time Trial Timer ---*/
 expr TrialRecordStatByte     = DisplayVar13
@@ -815,82 +815,82 @@ state Bonus_Text { // 13
 
 sub SetLevelID(level) {
     misc = 0
-    if (level == 0x200) misc = 0;
-    if (level == 0xB00) misc = 1;
-    if (level == 0xE00) misc = 2;
-    if (level == 0xA00) misc = 3;
-    if (level == 0xC00) misc = 4;
-    if (level == 0x1900) misc = 5;
-    if (level == 0xF00) misc = 6;
-    if (level == 0x1600) misc = 7;
-    if (level == 0x1500) misc = 8;
-    if (level == 0x1200) misc = 9;
-    if (level == 0x1100) misc = 10;
-    if (level == 0x1000) misc = 11;
-    if (level == 0x1C00) misc = 12;
-    if (level == 0x1A00) misc = 13;
-    if (level == 0x1400) misc = 14;
-    if (level == 0x1D00) misc = 15;
-    if (level == 0x1E00) misc = 16;
-    if (level == 0x1300) misc = 17;
-    if (level == 0xD00) misc = 18;
-    if (level == 0x1B00) misc = 19;
-    if (level == 0x1800) misc = 20;
-    if (level == 0x2300) misc = 21;
-    if (level == 0x2000) misc = 22;
-    if (level == 0x2200) misc = 23;
-    if (level == 0x1700) misc = 24;
-    if (level == 0x2400) misc = 25;
-    if (level == 0x2100) misc = 26;
-    if (level == 0x2500) misc = 28;
-    if (level == 0x1F00) misc = 30;
-    if (level == 0x2700) misc = 31;
-    if (level == 0x2600) misc = 32;
-    if (level == 0x600) misc = -1;
-    if (level == 0x300) misc = -2;
-    if (level == 0x400) misc = -3;
-    if (level == 0x500) misc = -4;
-    if (level == 0x700) misc = -5;
+    if (level == LEVEL_WarpRoom)       misc = 0;
+    if (level == LEVEL_ToadVillage)    misc = 1;
+    if (level == LEVEL_UnderPressure)  misc = 2;
+    if (level == LEVEL_OrientExpress)  misc = 3;
+    if (level == LEVEL_BoneYard)       misc = 4;
+    if (level == LEVEL_MakinWaves)     misc = 5;
+    if (level == LEVEL_GeeWiz)         misc = 6;
+    if (level == LEVEL_HangEmHigh)     misc = 7;
+    if (level == LEVEL_HogRide)        misc = 8;
+    if (level == LEVEL_TombTime)       misc = 9;
+    if (level == LEVEL_MidnightRun)    misc = 10;
+    if (level == LEVEL_DinoMight)      misc = 11;
+    if (level == LEVEL_DeepTrouble)    misc = 12;
+    if (level == LEVEL_HighTime)       misc = 13;
+    if (level == LEVEL_RoadCrash)      misc = 14;
+    if (level == LEVEL_DoubleHeader)   misc = 15;
+    if (level == LEVEL_Sphynxinator)   misc = 16;
+    if (level == LEVEL_ByeByeBlimps)   misc = 17;
+    if (level == LEVEL_TellNoTales)    misc = 18;
+    if (level == LEVEL_FutureFrenzy)   misc = 19;
+    if (level == LEVEL_TombWader)      misc = 20;
+    if (level == LEVEL_GoneTomorrow)   misc = 21;
+    if (level == LEVEL_OrangeAsphalt)  misc = 22;
+    if (level == LEVEL_FlamingPassion) misc = 23;
+    if (level == LEVEL_MadBombers)     misc = 24;
+    if (level == LEVEL_BugLite)        misc = 25;
+    if (level == LEVEL_SkiCrazed)      misc = 26;
+    if (level == LEVEL_Area51)         misc = 28;
+    if (level == LEVEL_RingsOfPower)   misc = 30;
+    if (level == LEVEL_HotCoco)        misc = 31;
+    if (level == LEVEL_EggipusRex)     misc = 32;
+    if (level == LEVEL_BossTiny)       misc = -1;
+    if (level == LEVEL_BossDingodile)  misc = -2;
+    if (level == LEVEL_BossNTropy)     misc = -3;
+    if (level == LEVEL_BossNGin2)      misc = -4;
+    if (level == LEVEL_BossCortex2)    misc = -5;
 }
 
 sub SetLevelName(level) {
     misc = 8.0
-    if (level == 0x200) misc = 9.0;
-    if (level == 0xB00) misc = 10.0;
-    if (level == 0xE00) misc = 11.0;
-    if (level == 0xA00) misc = 12.0;
-    if (level == 0xC00) misc = 13.0;
-    if (level == 0x1900) misc = 14.0;
-    if (level == 0xF00) misc = 15.0;
-    if (level == 0x1600) misc = 16.0;
-    if (level == 0x1500) misc = 17.0;
-    if (level == 0x1200) misc = 18.0;
-    if (level == 0x1100) misc = 19.0;
-    if (level == 0x1000) misc = 20.0;
-    if (level == 0x1C00) misc = 21.0;
-    if (level == 0x1A00) misc = 22.0;
-    if (level == 0x1400) misc = 23.0;
-    if (level == 0x1D00) misc = 24.0;
-    if (level == 0x1E00) misc = 25.0;
-    if (level == 0x1300) misc = 26.0;
-    if (level == 0xD00) misc = 27.0;
-    if (level == 0x1B00) misc = 28.0;
-    if (level == 0x1800) misc = 29.0;
-    if (level == 0x2300) misc = 30.0;
-    if (level == 0x2000) misc = 31.0;
-    if (level == 0x2200) misc = 32.0;
-    if (level == 0x1700) misc = 33.0;
-    if (level == 0x2400) misc = 34.0;
-    if (level == 0x2100) misc = 35.0;
-    if (level == 0x2500) misc = 36.0;
-    if (level == 0x1F00) misc = 37.0;
-    if (level == 0x2700) misc = 38.0;
-    if (level == 0x2600) misc = 39.0;
-    if (level == 0x600) misc = 40.0;
-    if (level == 0x300) misc = 41.0;
-    if (level == 0x400) misc = 42.0;
-    if (level == 0x500) misc = 43.0;
-    if (level == 0x700) misc = 44.0;
+    if (level == LEVEL_WarpRoom)       misc = 9.0;
+    if (level == LEVEL_ToadVillage)    misc = 10.0;
+    if (level == LEVEL_UnderPressure)  misc = 11.0;
+    if (level == LEVEL_OrientExpress)  misc = 12.0;
+    if (level == LEVEL_BoneYard)       misc = 13.0;
+    if (level == LEVEL_MakinWaves)     misc = 14.0;
+    if (level == LEVEL_GeeWiz)         misc = 15.0;
+    if (level == LEVEL_HangEmHigh)     misc = 16.0;
+    if (level == LEVEL_HogRide)        misc = 17.0;
+    if (level == LEVEL_TombTime)       misc = 18.0;
+    if (level == LEVEL_MidnightRun)    misc = 19.0;
+    if (level == LEVEL_DinoMight)      misc = 20.0;
+    if (level == LEVEL_DeepTrouble)    misc = 21.0;
+    if (level == LEVEL_HighTime)       misc = 22.0;
+    if (level == LEVEL_RoadCrash)      misc = 23.0;
+    if (level == LEVEL_DoubleHeader)   misc = 24.0;
+    if (level == LEVEL_Sphynxinator)   misc = 25.0;
+    if (level == LEVEL_ByeByeBlimps)   misc = 26.0;
+    if (level == LEVEL_TellNoTales)    misc = 27.0;
+    if (level == LEVEL_FutureFrenzy)   misc = 28.0;
+    if (level == LEVEL_TombWader)      misc = 29.0;
+    if (level == LEVEL_GoneTomorrow)   misc = 30.0;
+    if (level == LEVEL_OrangeAsphalt)  misc = 31.0;
+    if (level == LEVEL_FlamingPassion) misc = 32.0;
+    if (level == LEVEL_MadBombers)     misc = 33.0;
+    if (level == LEVEL_BugLite)        misc = 34.0;
+    if (level == LEVEL_SkiCrazed)      misc = 35.0;
+    if (level == LEVEL_Area51)         misc = 36.0;
+    if (level == LEVEL_RingsOfPower)   misc = 37.0;
+    if (level == LEVEL_HotCoco)        misc = 38.0;
+    if (level == LEVEL_EggipusRex)     misc = 39.0;
+    if (level == LEVEL_BossTiny)       misc = 40.0;
+    if (level == LEVEL_BossDingodile)  misc = 41.0;
+    if (level == LEVEL_BossNTropy)     misc = 42.0;
+    if (level == LEVEL_BossNGin2)      misc = 43.0;
+    if (level == LEVEL_BossCortex2)    misc = 44.0;
 }
 
 inline sub KillDisplayChildren() {
@@ -1112,7 +1112,7 @@ sub LevelExit() {
         loadlevel(LEVEL_Title)
     }
     else {
-        if (LEVEL == 0x1F00 || LEVEL == 0x2500 || LEVEL == 0x2000 || LEVEL == 0x1400 || LEVEL == 0x1500) {
+        if (LEVEL == LEVEL_RingsOfPower || LEVEL == LEVEL_Area51 || LEVEL == LEVEL_OrangeAsphalt || LEVEL == LEVEL_RoadCrash || LEVEL == LEVEL_HogRide) {
             miscfunc(null, player, 23, 12)
         }
         if (GLOBAL_191 >= 0) {
@@ -2183,16 +2183,16 @@ state Collectable_Manager { // 27
     }
     event(e, a) {
         if (e == Event32) {
-            CollectedRewardType = a[0]
-            CollectedRewardArg = a[1.0]
+            CollectedRewardID = a[0]
+            CollectedRewardParentID = a[1.0]
             if (field_62 == 0) {
-                if (CollectedRewardType == RELIC_SAPPHIRE || CollectedRewardType == RELIC_GOLD || CollectedRewardType == RELIC_PLATINUM || CollectedRewardType == REWARD_POWER || CollectedRewardType == REWARD_CRYSTAL) {
-                    CheckPlayerInventory(CollectedRewardType, 0, true)
+                if (CollectedRewardID == RELIC_SAPPHIRE || CollectedRewardID == RELIC_GOLD || CollectedRewardID == RELIC_PLATINUM || CollectedRewardID == REWARD_POWER || CollectedRewardID == REWARD_CRYSTAL) {
+                    CheckPlayerInventory(CollectedRewardID, 0, true)
                 }
-                else if (CollectedRewardType == REWARD_GEM) {
+                else if (CollectedRewardID == REWARD_GEM) {
                     CheckPlayerInventory(REWARD_GEM, -40.0, true)
                 }
-                else if (CollectedRewardType == REWARD_GEM_SPECIAL) {
+                else if (CollectedRewardID == REWARD_GEM_SPECIAL) {
                     CheckPlayerInventory(REWARD_GEM_SPECIAL, 40.0, true)
                 }
             }
@@ -2288,18 +2288,18 @@ state Box_Counter { // 31
                 misc = GEMPOOL2 & (1 << (item_offs - 32))
             }
             field_61 = field_61 || misc
-            if (LEVEL == 0x500
-                || LEVEL == 0x1F00
-                || LEVEL == 0x1700
-                || LEVEL == 0x1300
-                || LEVEL == 0x2500
-                || LEVEL == 0x2000
-                || LEVEL == 0x1400
-                || LEVEL == 0x1500
-                || LEVEL == 0x2700
-                || LEVEL == 0x2100
-                || LEVEL == 0xD00
-                || LEVEL == 0x1900) {
+            if (LEVEL == LEVEL_BossNGin2
+                || LEVEL == LEVEL_RingsOfPower
+                || LEVEL == LEVEL_MadBombers
+                || LEVEL == LEVEL_ByeByeBlimps
+                || LEVEL == LEVEL_Area51
+                || LEVEL == LEVEL_OrangeAsphalt
+                || LEVEL == LEVEL_RoadCrash
+                || LEVEL == LEVEL_HogRide
+                || LEVEL == LEVEL_HotCoco
+                || LEVEL == LEVEL_SkiCrazed
+                || LEVEL == LEVEL_TellNoTales
+                || LEVEL == LEVEL_MakinWaves) {
                     field_63 = 25m
                 }
             else {
@@ -2336,16 +2336,16 @@ state Box_Counter_Reward { // 32
             creator = objectspawned
             spawn(9, 63, 1, -1.0, 0, 400.0, 0.8S, 50, reward) // Firework
             do {
-                misc = LEVEL == 0x2500
-                    || LEVEL == 0x2000
-                    || LEVEL == 0x1400
-                    || LEVEL == 0x1500
-                    || LEVEL == 0xC00
-                    || LEVEL == 0x1000
-                    || LEVEL == 0x2700
-                    || LEVEL == 0x2100
-                    || LEVEL == 0xD00
-                    || LEVEL == 0x1900
+                misc = LEVEL == LEVEL_Area51
+                    || LEVEL == LEVEL_OrangeAsphalt
+                    || LEVEL == LEVEL_RoadCrash
+                    || LEVEL == LEVEL_HogRide
+                    || LEVEL == LEVEL_BoneYard
+                    || LEVEL == LEVEL_DinoMight
+                    || LEVEL == LEVEL_HotCoco
+                    || LEVEL == LEVEL_SkiCrazed
+                    || LEVEL == LEVEL_TellNoTales
+                    || LEVEL == LEVEL_MakinWaves
                 sendeventif(Event2, creator, misc && distance(player) < 5m, 0)
                 playnull()
             } until (entitygetstate(3))
@@ -2418,7 +2418,7 @@ state HUD_TimeTrial_Start { // 33
                 TimeTrialTrans()
             } while (frametime - start_frame < 6)
             {
-                var target_x = LEVEL == 0x1F00 || LEVEL == 0x1700 || LEVEL == 0x1300 ? 68.0 : 172.0
+                var target_x = LEVEL == LEVEL_RingsOfPower || LEVEL == LEVEL_MadBombers || LEVEL == LEVEL_ByeByeBlimps ? 68.0 : 172.0
                 var target_y = -101.0
                 unless (GLOBAL_139 & 0x10) {
                     save (scalex, scaley, scalez) {
@@ -3081,7 +3081,7 @@ state Crystal_Glow { // 43
     code(enable_depth_tilt) {
         DisplayFrame = 0
         if (enable_depth_tilt) {
-            if (LEVEL == 0xF00) {
+            if (LEVEL == LEVEL_GeeWiz) {
                 DisplayFrame = 1
                 DisplayVar13 = 0x88
                 DisplayVar16 = 0x12C000
@@ -3103,7 +3103,7 @@ state Crystal_Glow { // 43
         vfx = (vfx & 0xFFFF00FF) | 0x600
         SetRot(0deg)
         zindex = creator -> zindex
-        if (LEVEL == 0xF00) {
+        if (LEVEL == LEVEL_GeeWiz) {
             zindex -= 37
         }
         else {
@@ -3262,7 +3262,7 @@ state Crystal_Glow { // 43
             else {
                 SAVEDCRYSTALPOOL2 = (1 << (item_offs - 32)) | SAVEDCRYSTALPOOL2
             }
-            sendeventif(EventWarp, self, LEVEL == 0x1F00 || LEVEL == 0x1700 || LEVEL == 0x1300, 0)
+            sendeventif(EventWarp, self, LEVEL == LEVEL_RingsOfPower || LEVEL == LEVEL_MadBombers || LEVEL == LEVEL_ByeByeBlimps, 0)
         }
         else if (reward >= REWARD_TIME) {
             save (interrupter) {

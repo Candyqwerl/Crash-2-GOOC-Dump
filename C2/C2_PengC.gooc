@@ -116,43 +116,39 @@ state Penguin_Walk { // 1
             else {
                 calcpath(abs(pathprog))
             }
-            {
-                var v1 = 0
-                var deg_to_player = 0deg
-                var pathrot = troty
-                save (troty, statusa, statusb, x, y, z, pathprog) {
-                    statusb = FLAG_PATH_CALCS | FLAG_TRACK_PATH_SIGN
-                    x = player -> x
-                    y = player -> y
-                    z = player -> z
-                    calcpath(0)
-                    v1 = troty
-                    troty += 90deg
-                    setvel(PenguinTrackOffset, vvel)
-                }
-                x += velx
-                z += velz
-                if (abs(PenguinTrackOffset - vecy) > 0.1m) {
-                    deg_to_player = degdist(troty, atan2(player -> trans))
-                    if (abs(deg_to_player) < 60deg) {
-                        if (deg_to_player < -45deg) {
-                            deg_to_player = -45deg
-                        }
-                        else if (deg_to_player > 45deg) {
-                            deg_to_player = 45deg
-                        }
-                        troty += deg_to_player
+            var deg_to_player = 0deg
+            var pathrot = troty
+            save(troty, statusa, statusb, x, y, z, pathprog) {
+                statusb = FLAG_PATH_CALCS | FLAG_TRACK_PATH_SIGN
+                x = player -> x
+                y = player -> y
+                z = player -> z
+                calcpath(0)
+                troty += 90deg
+                setvel(PenguinTrackOffset, vvel)
+            }
+            x += velx
+            z += velz
+            if (abs(PenguinTrackOffset - vecy) > 0.1m) {
+                deg_to_player = degdist(troty, atan2(player -> trans))
+                if (abs(deg_to_player) < 60deg) {
+                    if (deg_to_player < -45deg) {
+                        deg_to_player = -45deg
                     }
+                    else if (deg_to_player > 45deg) {
+                        deg_to_player = 45deg
+                    }
+                    troty += deg_to_player
                 }
-                PenguinTrackOffset = seek(PenguinTrackOffset, vecy, spd(2m))
-                if (PenguinTrackOffset < -pathdist) {
-                    troty = pathrot
-                    PenguinTrackOffset = -pathdist
-                }
-                else if (PenguinTrackOffset > pathdist) {
-                    troty = pathrot
-                    PenguinTrackOffset = pathdist
-                }
+            }
+            PenguinTrackOffset = seek(PenguinTrackOffset, vecy, spd(2m))
+            if (PenguinTrackOffset < -pathdist) {
+                troty = pathrot
+                PenguinTrackOffset = -pathdist
+            }
+            else if (PenguinTrackOffset > pathdist) {
+                troty = pathrot
+                PenguinTrackOffset = pathdist
             }
             troty += loopseek(PenguinWaddle, 4deg, 0.1s) - 2deg
             if (STATUS_PATH_END) {
@@ -195,18 +191,18 @@ sub PenguinSpinEvents(e, a) {
     }
 }
 
-sub PenguinSpinTrans() {
+sub PenguinSpinTrans(){
     field_61 = seek(field_61, 60deg, 12deg)
     roty += field_61
     sendevent(EventHit, collider, 100.0)
 }
 
-sub PenguinDoSpin(skip_shake) {
+sub PenguinDoSpin(skip_shake){
     pathdist = 0
     if (!skip_shake) {
         playframes(PENGUIN_SHAKE, 0.0, 9.0)
     }
-    save (statusb) {
+    save(statusb) {
         statusb &= ~FLAG_ROT_Y
         if (!skip_shake) {
             playframes(10.0, 14.0)
@@ -218,7 +214,7 @@ sub PenguinDoSpin(skip_shake) {
         SoundPenguinSpin()
         do {
             playanim(0, PENGUIN_SPIN)
-        } until (frametime - statetime >= 0.8s && abs(degdist(roty, GAMEDIR)) <= 60deg)
+        } until(frametime - statetime >= 0.8s && abs(degdist(roty, GAMEDIR)) <= 60deg)
         roty = GAMEDIR + randi(-15deg, 15deg)
         tpc = getins(sub_174)
         epc = 0
@@ -377,7 +373,7 @@ state Penguin_Slide { // 8
         var pathrot = troty
         pathprog = spd(pathprog, PenguinPathSpeed)
         calcpath(pathprog)
-        save (troty, statusa, statusb, x, y, z, pathprog) {
+        save(troty, statusa, statusb, x, y, z, pathprog) {
             statusb = FLAG_PATH_CALCS | FLAG_TRACK_PATH_SIGN
             x = player -> x
             y = player -> y
@@ -418,7 +414,7 @@ state Penguin_Slide { // 8
 state Penguin_Kill { // 9
     stateflag 0x20
     statusc 0x0
-    code() {}
+    code() { }
 }
 
 state Penguin_Squash { // 10
@@ -433,7 +429,7 @@ state Penguin_Squash { // 10
     }
 }
 
-sub SetParticleColor() {
+sub SetParticleColor(){
     var r = rand(3)
     if (r == 0 || r == 1) {
         SetColor1(0x1B, 0x2E, 0x60)

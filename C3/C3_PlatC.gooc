@@ -1,8 +1,7 @@
 #gool PlatC 14 6
 
 #include "..\\Includes\\goolstdlib.gooc"
-
-//gooc -c 2 -r pal -l f "MyGOOC\Decomp\C2\C3_PlatC.gooc" "MyGOOC\Decomp\C2\C3_PlatC.nsentry"
+//gooc -c 2 -r pal "C3\C3_PlatC.gooc" "C3\Out\C3_PlatC.nsentry"
 
 #anim PLATFORM_1  [Pl1AV] 1 1
 #anim PLATFORM_2  [Pl2iV] 1 1
@@ -30,13 +29,6 @@
 var PlatTransFunc, PlatFallTransFunc, PlatContactFrame, PlatVar4, PlatDropFallSpeed, PlatBobYOff, PlatBobSpeed,
     PlatPathSpeed, PlatVar9, PlatVar10, PlatDropGravity, PlatVar12, PlatDropDistance,
     PlatVar14, PlatVar15, PlatCycleLen, PlatCycleOffs, PlatPathPauseLen, PlatVar19, PlatVar20
-
-expr LEVEL_TombTime = 0x1200
-expr LEVEL_Sphynxinator = 0x1E00
-expr LEVEL_TombWader = 0x1800
-expr LEVEL_BugLight = 0x2400
-expr LEVEL_FutureFrenzy = 0x1B00
-expr LEVEL_GoneTomorrow = 0x2300
 
 // Change statusc to 0x200002 if using in C2.
 
@@ -245,7 +237,7 @@ state Platform_Drop_Init { // 5
         SelectPlatAnim(anim)
         if (reflection) {
             if (ZONEFLAGS & 0x800) {
-                spawn(9, 28, 1) // OG spawns FutOC reflection (13-11)
+                spawn(13, 11, 1) // FutOC-11
             }
             else {
                 vfx = (vfx & 0xFFFF00FF) | 0xE00 // C2: 0xC00
@@ -382,7 +374,7 @@ sub SUB_688() {
 state Platform_Drop_Fall { // 7
     statusc 0x80002
     code() {
-        if (LEVEL == LEVEL_TombTime || LEVEL == LEVEL_Sphynxinator || LEVEL == LEVEL_BugLight) {
+        if (LEVEL == LEVEL_TombTime || LEVEL == LEVEL_Sphynxinator || LEVEL == LEVEL_BugLite) {
             sounddecay(7.7s)
             SoundPitchDefault()
             soundplay([DPlfA], 0.6V)

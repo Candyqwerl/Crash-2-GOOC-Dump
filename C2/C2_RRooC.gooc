@@ -569,12 +569,10 @@ state Ripper_Roo { // 1
     code() {
         SetColor1(0xFF, 0xFF, 0xFF)
         RooTNTPhase1()
-        var0 = false
+        goto skip;
         do {
-            if (var0) {
-                RooTNTPhase1Repeat()
-            }
-            var0 = true
+            RooTNTPhase1Repeat()
+            skip:
             playframes(ROO_HOP_WAIT_FOR_TNT, 0.0, 43.0)
             until (BoxesExploded) {
                 playframe()

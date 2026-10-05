@@ -17,16 +17,16 @@ event EventFling         => state LabJack_Fling
 event EventSlideHit      => state LabJack_Fling
 event EventSlamHit       => state LabJack_Squash
 
-var PathSpeed, LabJackVar2, TrackOffset, LabJackVar4, WaitForPlayerInRange, PathStartX, PathStartZ, PathEndX, PathEndZ, LabJackVar10
+var PathSpeed, LabJackVar2, TrackOffset, LabJackVar4, WaitingForPlayerInPathSpan, PathStartX, PathStartZ, PathEndX, PathEndZ, LabJackVar10
 
 expr PlayerWithinPathSpan =
     (((player -> x - PathStartX) >> 8) * ((PathEndX - PathStartX) >> 8) + ((player -> z - PathStartZ) >> 8) * ((PathEndZ - PathStartZ) >> 8)) >= 0 &&
     (((player -> x - PathEndX) >> 8) * ((PathStartX - PathEndX) >> 8) + ((player -> z - PathEndZ) >> 8) * ((PathStartZ - PathEndZ) >> 8)) >= 0
 
 state Lab_Jack_Init { // 0
-    code(path_spd, arg, wait) {
+    code(path_spd, arg, wait_for_player) {
         zindex = 24
-        WaitForPlayerInRange = wait
+        WaitingForPlayerInPathSpan = wait_for_player
         save (vecx, vecy, vecz) {
             calcpath(pathlen - 1.0, vvec)
             PathEndX = vecx
@@ -52,7 +52,7 @@ state LabJack_Active { // 1
     statusc 0
     event => state LabJack_Attack
     code() {
-        while (WaitForPlayerInRange) {
+        while (WaitingForPlayerInPathSpan) {
             playanim(0, LABJACK_WALK)
         }
         do {
@@ -65,8 +65,8 @@ state LabJack_Active { // 1
         } while (1)
     }
     trans {
-        if (!WaitForPlayerInRange || PlayerWithinPathSpan) {
-            WaitForPlayerInRange = 0
+        if (!WaitingForPlayerInPathSpan || PlayerWithinPathSpan) {
+            WaitingForPlayerInPathSpan = 0
             trotx = 720deg
             if (pathprog >= 0) {
                 pathprog = seek(pathprog, pathlen - 1.0, spd(PathSpeed))

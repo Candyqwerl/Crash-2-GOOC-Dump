@@ -25,8 +25,6 @@ event Event26 => sub KillVoice
 
 var CycleLen, WalkBackDuration, KnifeSwingDuration, FrameOffs, CycleOffs, MaxTrackOffset, TrackOffset, TrackAxis, ShadowAnim, KnifeVoice
 
-expr LEVEL_HighTime = 0x1A00
-
 state Guard_Init { // 0
     statusc 0
     code(cyclelen, frameoffs, cycleoffs, max_track, axis, flip) {

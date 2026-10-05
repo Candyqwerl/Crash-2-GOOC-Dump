@@ -24,7 +24,7 @@ var BasePathSpeed, PathSpeed, Waddle, PorcupineVar4, ProcupineTrackOffset, Porcu
     PathStartX, PathStartZ, PathEndX, PathEndZ, PathTriggerDist, StartSpikeCycleCount,
     TriggerMode, EntityID_1, EntityID_2
 
-expr PlayerWithinPathSpan = (((player -> x - PathStartX) >> 8) * ((PathEndX - PathStartX) >> 8) + ((player -> z - PathStartZ) >> 8) * ((PathEndZ - PathStartZ) >> 8)) >= PathTriggerDist
+expr PlayerOnPath = (((player -> x - PathStartX) >> 8) * ((PathEndX - PathStartX) >> 8) + ((player -> z - PathStartZ) >> 8) * ((PathEndZ - PathStartZ) >> 8)) >= PathTriggerDist
     && (((player -> x - PathEndX) >> 8) * ((PathStartX - PathEndX) >> 8) + ((player -> z - PathEndZ) >> 8) * ((PathStartZ - PathEndZ) >> 8)) >= PathTriggerDist
 
 inline sub SoundPorcupineRetract() {
@@ -115,7 +115,7 @@ state Porcupine_Wait {
         changestateif(Porcupine_Triggered, entitygetstate(2))
         if (TriggerMode == 1.0) {
             if (abs(player -> y - y) < 2m && PorcupineVar4 >= 90deg && !(STATUS_PATH_END)) {
-                changestateif(Porcupine_Spike, PlayerWithinPathSpan)
+                changestateif(Porcupine_Spike, PlayerOnPath)
             }
         }
         sendeventif(EventHit, collider, player -> statusa \ FLAG_GROUNDLAND, 100.0)

@@ -18,12 +18,10 @@
 
 var BouncePropulsion, BounceCooldown
 
-expr LEVEL_HangEmHigh = 0x1600
-
 state Sky { // 0
     stateflag 0x10001
     statusc 0
-    code() {
+    code(){
         if (LEVEL == LEVEL_HangEmHigh) {
             settrans(SkyRotate)
             statusb = FLAG_NO_CAMERA_CLIP
@@ -48,7 +46,7 @@ sub SkyRotate() {
 
 state Bounce_Tarp_Init { // 1
     statusc 0
-    code(yaw, propulsion) {
+    code(yaw, propulsion){
         roty = yaw
         BouncePropulsion = propulsion
         statusb = FLAG_SOLID_FULL
@@ -61,7 +59,7 @@ state Bounce_Tarp_Init { // 1
 state Bounce_Tarp { // 2
     stateflag 0x4081
     statusc 0x80012
-    code() {
+    code(){
         sleepanim(0, BOUNCE_TARP)
     }
     event(e, a) {
@@ -84,12 +82,12 @@ state Bounce_Tarp { // 2
             && !(player -> stateflag & 0x80000)
             && !(player -> stateflag & 0x10)
             && !(player -> stateflag & 0x800)) {
-                sendevent(Event21, collider, BouncePropulsion)
-                if (eventaccepted) {
-                    BounceCooldown = frametime + 1
-                    changestate(Bounce_Tarp_Bounce)
-                }
+            sendevent(Event21, collider, BouncePropulsion)
+            if (eventaccepted) {
+                BounceCooldown = frametime + 1
+                changestate(Bounce_Tarp_Bounce)
             }
+        }
     }
 }
 
@@ -97,7 +95,7 @@ state Bounce_Tarp_Bounce { // 3
     stateflag 0x4081
     statusc 0x80012
     event => state Bounce_Tarp
-    code() {
+    code(){
         soundpitch((14.4 + rand(3.2)) * 0.295 >> 8)
         sounddecay(6.4s)
         soundplay([BT1mA], 0.4V)
@@ -109,17 +107,17 @@ state Bounce_Tarp_Bounce { // 3
             && !(player -> stateflag & 0x80000)
             && !(player -> stateflag & 0x10)
             && !(player -> stateflag & 0x800)) {
-                sendevent(Event21, collider, BouncePropulsion)
-                if (eventaccepted) {
-                    BounceCooldown = frametime + 1
-                    changestateif(Bounce_Tarp_Bounce, frametime - statetime >= 0.25s)
-                }
+            sendevent(Event21, collider, BouncePropulsion)
+            if (eventaccepted) {
+                BounceCooldown = frametime + 1
+                changestateif(Bounce_Tarp_Bounce, frametime - statetime >= 0.25s)
             }
+        }
     }
 }
 
 state Balcony { // 4
-    code(yaw) {
+    code(yaw){
         roty = yaw
         statusb = 0
         zindex = fieldval(ENTITY_FIELD_ZINDEX)
@@ -130,7 +128,7 @@ state Balcony { // 4
 
 state Platform { // 5
     stateflag 0x201
-    code(yaw) {
+    code(yaw){
         roty = yaw
         statusb = 0
         zindex = fieldval(ENTITY_FIELD_ZINDEX)
@@ -146,7 +144,7 @@ state Platform { // 5
 
 state Hang_Boost { // 6
     stateflag 0x800201
-    code(sx, sy, sz, a) {
+    code(sx, sy, sz, a){
         SetScale(sx, sy, sz)
         y += 3m
         statusb = FLAG_COLLIDABLE

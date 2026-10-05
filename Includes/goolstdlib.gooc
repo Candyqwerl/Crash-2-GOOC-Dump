@@ -72,8 +72,6 @@ expr BONUS_CURRENT   = 1.0
 expr BONUS_COMPLETED = 2.0
 expr BONUS_KILLED    = 3.0
 
-expr BouncePropulsionDefault = 17.88854m
-
 expr PAD_L2       = 0x0001
 expr PAD_R2       = 0x0002
 expr PAD_L1       = 0x0004
@@ -151,6 +149,50 @@ expr LEVEL_WarpRoomIt        = L'M'
 expr LEVEL_GameOver          = L'X'
 expr LEVEL_Title             = L'Y'
 
+expr LEVEL_BossDingodile     = L'3'
+expr LEVEL_BossNTropy        = L'4'
+expr LEVEL_BossNGin2         = L'5'
+expr LEVEL_BossTiny          = L'6'
+expr LEVEL_BossCortex2       = L'7'
+expr LEVEL_OrientExpress     = L'a'
+expr LEVEL_ToadVillage       = L'b'
+expr LEVEL_BoneYard          = L'c'
+expr LEVEL_TellNoTales       = L'd'
+expr LEVEL_UnderPressure     = L'e'
+expr LEVEL_GeeWiz            = L'f' 
+expr LEVEL_DinoMight         = L'g' 
+expr LEVEL_MidnightRun       = L'h' 
+expr LEVEL_TombTime          = L'i' 
+expr LEVEL_ByeByeBlimps      = L'j' 
+expr LEVEL_RoadCrash         = L'k' 
+expr LEVEL_HogRide           = L'l' 
+expr LEVEL_HangEmHigh        = L'm' 
+expr LEVEL_MadBombers        = L'n' 
+expr LEVEL_TombWader         = L'o' 
+expr LEVEL_MakinWaves        = L'p' 
+expr LEVEL_HighTime          = L'q' 
+expr LEVEL_FutureFrenzy      = L'r' 
+expr LEVEL_DeepTrouble       = L's' 
+expr LEVEL_DoubleHeader      = L't' 
+expr LEVEL_Sphynxinator      = L'u' 
+expr LEVEL_RingsOfPower      = L'v' 
+expr LEVEL_OrangeAsphalt     = L'w' 
+expr LEVEL_SkiCrazed         = L'x' 
+expr LEVEL_FlamingPassion    = L'y' 
+expr LEVEL_GoneTomorrow      = L'z' 
+expr LEVEL_BugLite           = L'A' 
+expr LEVEL_Area51            = L'B' 
+expr LEVEL_EggipusRex        = L'C' 
+expr LEVEL_HotCoco           = L'D' 
+expr LEVEL_IntroEN           = L'E' 
+expr LEVEL_GameEnd2          = L'F' 
+expr LEVEL_GameWin2          = L'G' 
+expr LEVEL_IntroES           = L'J' 
+expr LEVEL_IntroFR           = L'K' 
+expr LEVEL_IntroDE           = L'L' 
+expr LEVEL_IntroIT           = L'M' 
+expr LEVEL_IntermissionVortex  = L'W' 
+
 expr EventAddFruit           = Event2
 expr EventAddLife            = Event5
 expr EventAddDoctor          = Event6
@@ -190,6 +232,8 @@ expr EventTriggerBonus       = Event71
 expr EventAddBox             = Event72
 expr EventSting              = Event74
 expr EventWarpIn             = Event78
+
+expr BouncePropulsionDefault = 17.88854m
 
 inline sub SetColor1(r, g, b) {
 	colr1 = r

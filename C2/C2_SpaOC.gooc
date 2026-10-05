@@ -643,7 +643,7 @@ state Space_Ring { // 25
         RadiusHalfCycle = radius_cyclet * 1s / 1.2s
         RadiusCycleOffs = radius_cycleoffs * 1s / 1.2s
         {
-            var angle = 0deg
+            var angle = 0
             var angle_inc = 360deg / BallCount
             do (var balls = 0) {
                 spawn(SpaOC, S_SPACEBALL, 1, angle)
